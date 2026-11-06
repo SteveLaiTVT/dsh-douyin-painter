@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "startedAt": "2026-11-06T11:08:13.255Z",
+  "specification": {
+    "path": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.architecture.json",
+    "sha256": "e13a82bacc1362f6b225e5b6e77789c7237a73726a7b636d834292b78d7f7ba5",
+    "bytes": 9325
+  },
+  "artifact": {
+    "path": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.html",
+    "sha256": "c778e6c976b76e6c2470dcc9491bcf5d5c0b74d0a9e59844e5ac44b934fa8f1d",
+    "bytes": 869982
+  },
+  "stages": {
+    "validate": {
+      "status": "not-run",
+      "execution": "embedded-in-deliver"
+    },
+    "deliver": {
+      "status": "fail",
+      "exitCode": 1,
+      "durationMs": 1604,
+      "command": [
+        "/usr/bin/node",
+        "/root/.agents/skills/archify/bin/archify.mjs",
+        "deliver",
+        "architecture",
+        "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.architecture.json",
+        "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.html",
+        "--quality",
+        "showcase",
+        "--json"
+      ]
+    }
+  },
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  },
+  "diagnostics": [
+    {
+      "code": "finalize/stage-failure",
+      "severity": "error",
+      "message": "The deliver stage did not complete successfully.",
+      "subject": {
+        "stage": "deliver"
+      },
+      "evidence": {
+        "exitCode": 1,
+        "reason": "Command failed: /usr/bin/node /root/.agents/skills/archify/bin/archify.mjs deliver architecture /root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.architecture.json /root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.html --quality showcase --json\n"
+      },
+      "supportedFixes": [
+        "use the compact finalize summary to repair the named subject in place, then rerun finalize once"
+      ]
+    }
+  ],
+  "evidence": {
+    "receipt": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.finalize.json",
+    "summaryReceipt": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "failedStage": "deliver",
+  "finishedAt": "2026-11-06T11:08:14.914Z",
+  "durationMs": 1659,
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "check-failed"
+  }
+}

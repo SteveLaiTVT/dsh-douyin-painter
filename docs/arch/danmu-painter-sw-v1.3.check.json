@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "check",
+  "provenance": "failed",
+  "artifact": {
+    "path": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.html"
+  },
+  "error": "A delivery attempt is unfinished or failed; complete a successful deliver before trusting this artifact.",
+  "file": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.html",
+  "diagnostic": "A delivery attempt is unfinished or failed; complete a successful deliver before trusting this artifact.",
+  "diagnostics": [
+    {
+      "code": "delivery/provenance-failed",
+      "severity": "error",
+      "message": "A delivery attempt is unfinished or failed; complete a successful deliver before trusting this artifact.",
+      "subject": {
+        "artifact": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.html",
+        "provenance": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.delivery.json"
+      },
+      "evidence": {
+        "pendingJournal": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-sw-v1.3.delivery-pending.json",
+        "found": true
+      },
+      "supportedFixes": [
+        "finish any active delivery, then rerun deliver successfully; retain the pending journal until recovery succeeds"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "弹幕画师 · 软件架构 v1.3（设计部署，尚未实现）",
+    "locale": "zh-CN",
+    "output": "docs/arch/danmu-painter-sw-v1.3.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "text-provider",
+      "type": "external",
+      "label": "宿主文本 provider",
+      "sublabel": "部署 / 协议 / 端口待定",
+      "tag": "由宿主配置，不固定型号",
+      "pos": [420, 40],
+      "size": [240, 90]
+    },
+    {
+      "id": "image-api",
+      "type": "cloud",
+      "label": "OpenAI Images API",
+      "sublabel": "静图 SSE / GIF 完整响应",
+      "tag": "已测 model / 项目 / 端点",
+      "pos": [850, 40],
+      "size": [240, 90]
+    },
+    {
+      "id": "control-page",
+      "type": "frontend",
+      "label": "浏览器 · 控制页",
+      "sublabel": "审核 / 开停轮 / 查账 / 恢复",
+      "tag": "独立窗口，不进入采集",
+      "pos": [40, 300],
+      "size": [240, 90]
+    },
+    {
+      "id": "stage-page",
+      "type": "frontend",
+      "label": "浏览器 · 舞台页",
+      "sublabel": "只读投影 / 安全画面 / 回执",
+      "tag": "无控制令牌 · AI 角标常驻",
+      "pos": [40, 560],
+      "size": [240, 100]
+    },
+    {
+      "id": "capture-app",
+      "type": "external",
+      "label": "直播伴侣 / Mac 采集",
+      "sublabel": "独立进程 · 只采舞台窗口",
+      "tag": "平台推流协议 / 端口待彩排",
+      "pos": [40, 820],
+      "size": [240, 90]
+    },
+    {
+      "id": "host-bridge",
+      "type": "backend",
+      "label": "M7 driver / bridge",
+      "sublabel": "Cordis 生命周期 / 文本队列",
+      "tag": "进程内调用宿主服务",
+      "pos": [420, 300],
+      "size": [240, 100]
+    },
+    {
+      "id": "generation-layer",
+      "type": "backend",
+      "label": "生成层 · M5",
+      "sublabel": "OpenAI 客户端 / 文件检查",
+      "tag": "图像并发 1 · 解码隔离待定",
+      "pos": [850, 300],
+      "size": [240, 100]
+    },
+    {
+      "id": "local-service",
+      "type": "backend",
+      "label": "本地服务 / M6 发布者",
+      "sublabel": "HTTP / WS · 127.0.0.1:P",
+      "tag": "M7 鉴权 · P 动态且非 1088",
+      "pos": [420, 560],
+      "size": [240, 120]
+    },
+    {
+      "id": "state-center",
+      "type": "security",
+      "label": "M7 调度与状态中心",
+      "sublabel": "单写入者 / 预算 / 屏障恢复",
+      "tag": "安全未决即禁播 · 先 fsync",
+      "pos": [850, 560],
+      "size": [240, 120]
+    },
+    {
+      "id": "ingress-layer",
+      "type": "backend",
+      "label": "接入层 · M1",
+      "sublabel": "WS / 代录统一受理",
+      "tag": "本机时间 / ingress_seq",
+      "pos": [420, 820],
+      "size": [240, 100]
+    },
+    {
+      "id": "domain-layer",
+      "type": "backend",
+      "label": "领域层 · M2 / M3 / M4",
+      "sublabel": "轮次状态机 / 审核 / 评选",
+      "tag": "T1 停收 / T2 冻结 / 哈希批准",
+      "pos": [850, 820],
+      "size": [240, 100]
+    },
+    {
+      "id": "douyinlive-process",
+      "type": "external",
+      "label": "douyinLive 独立进程",
+      "sublabel": "监听 127.0.0.1:1088",
+      "tag": "上游协议 / 认证归它负责",
+      "pos": [420, 1100],
+      "size": [240, 90]
+    },
+    {
+      "id": "show-files",
+      "type": "database",
+      "label": "本场目录 showRoot",
+      "sublabel": "业务日志 / 素材 / 恢复记录",
+      "tag": "旧 approved 文件存在不等于可播",
+      "pos": [850, 1100],
+      "size": [260, 90]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "同一台主播 Mac · 拟部署关系",
+      "wraps": ["control-page", "stage-page", "capture-app", "host-bridge", "generation-layer", "local-service", "state-center", "ingress-layer", "domain-layer", "douyinlive-process", "show-files"],
+      "pad": 28
+    },
+    {
+      "kind": "region",
+      "label": "DSH 宿主进程 · driver 与本地服务同进程",
+      "wraps": ["host-bridge", "generation-layer", "local-service", "state-center", "ingress-layer", "domain-layer"],
+      "pad": 20
+    }
+  ],
+  "connections": [
+    {"id": "host-provider-call", "from": "host-bridge", "to": "text-provider", "label": "宿主出站 · 待配"},
+    {"id": "images-outbound", "from": "generation-layer", "to": "image-api", "label": "HTTPS :443"},
+    {"id": "control-http", "from": "control-page", "to": "local-service", "label": "主动 HTTP :P", "variant": "security"},
+    {"id": "stage-connect-ack", "from": "stage-page", "to": "local-service", "label": "HTTP / WS :P"},
+    {"id": "stage-projection-lease", "from": "local-service", "to": "stage-page", "label": "WS 投影 / 心跳 / 撤播", "variant": "security"},
+    {"id": "capture-window", "from": "capture-app", "to": "stage-page", "label": "系统窗口采集"},
+    {"id": "private-commands", "from": "local-service", "to": "domain-layer", "label": "进程内鉴权命令", "variant": "security"},
+    {"id": "manual-ingress", "from": "local-service", "to": "ingress-layer", "label": "进程内代录"},
+    {"id": "ingress-ws-client", "from": "ingress-layer", "to": "douyinlive-process", "label": "M1 主动 WS :1088"},
+    {"id": "accepted-ingress", "from": "ingress-layer", "to": "domain-layer", "label": "进程内受理"},
+    {"id": "domain-state-commit", "from": "domain-layer", "to": "state-center", "label": "串行状态提交"},
+    {"id": "text-dispatch", "from": "state-center", "to": "host-bridge", "label": "进程内文本任务"},
+    {"id": "winner-dispatch", "from": "state-center", "to": "generation-layer", "label": "落盘赢家 / 预算", "variant": "security"},
+    {"id": "generation-safety-cost", "from": "generation-layer", "to": "state-center", "label": "安全 / 费用回调", "variant": "security"},
+    {"id": "public-state-and-safety", "from": "state-center", "to": "local-service", "label": "可播投影 / 撤销", "variant": "security"},
+    {"id": "state-local-files", "from": "state-center", "to": "show-files", "label": "本地文件 / fsync", "variant": "security"},
+    {"id": "artifact-bytes", "from": "generation-layer", "to": "show-files", "label": "本地素材字节"}
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "两图互补：看归属与部署",
+      "items": [
+        "本图依据 DESIGN v1.3 软件架构与 M1–M7 描述拟部署关系，不代表仓库已有运行实现；v1.1 图继续解释业务数据流和安全链路。",
+        "两张浏览器页面是权限与窗口边界，不承诺各占一个 OS 进程；本插件的 HTTP/WS 服务在 DSH 内，没有独立常驻后端。",
+        "P 在启动时选择并记录；WS 主动方为 M1 或舞台。HTTP 返回状态/素材，舞台 WS 仅回本实例心跳与应用回执。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "接口与安全生效条件",
+      "items": [
+        "所有业务结果绑定 K=(show_id, round_id, generation)，文件/文字绑定准确哈希与版本；T2 冻结先落盘，M4 不能直接绕过状态中心把赢家送 M5。",
+        "安全/费用回调独立于普通迟到结果过滤。撤销立即未决禁播、要求撤播，再执行意图 fsync → 撤销提交 fsync → 屏障闭合 fsync；旧轮只清旧引用，不遮新轮。",
+        "发布者每 1 秒心跳，舞台 3 秒无有效心跳切内置安全画面；遮罩/撤播 1 秒未回执，控制页要求操作员切断采集源。回执不代表采集后的观众画面必定安全。",
+        "控制命令与私有读取经令牌、Host/Origin 等校验；写入另须会话绑定和 CSRF。舞台不取得控制权限，付费调用须先过单场账本。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "状态、恢复与待实现期定",
+      "items": [
+        "状态中心写 show.json、events.jsonl、检查点/榜单、请求/预算、revocations.json、revocation-barriers.jsonl 和 recovery.json；M5 受控写素材字节，浏览器不直接挂载目录。",
+        "先读退出见证/屏障/隔离，再 fsync 本次 running 才开放业务；无本次有效 clean-shutdown 或未闭合屏障即不信任旧安全状态。clean 在 recovery.json 中，正常退出最后提交，不能清掉既有隔离。",
+        "M5 解码须独立可中止；受限子进程是候选，具体隔离与 IPC 待实现期定，不另设业务端口。文本 provider 是宿主配置依赖，本地/远端部署和协议/端口均待实现期定；Mac 宿主版本和安装命令也待定。",
+        "宿主 sessionPersistence 由 DSH 管理，实际路径/保留期待核，不混同应用目录。伴侣推流与 douyinLive 上游协议由各自程序负责，目标端口待彩排。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "扩展接点",
+      "items": [
+        "官方小玩法替换 M1 transport，仍输出统一受理事件；自动视觉审核接 M3 判定接口，仍消费 M5 已检查文件并走独立安全通道，本版人审不取消。",
+        "赛季聚合接 M4 已提交榜单/撤销事件，持久化与积分/清分规则另定；公开输出仍由 M6 审批投影，不改变本版每轮排名。"
+      ]
+    }
+  ]
+}
