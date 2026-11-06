@@ -14,3 +14,4 @@
 - Ruling: Node default test subprocess isolation fails in this sandbox; same tests execute using `--test-isolation=none` (10 pass). Test execution is real, process decoder/browser capability will be reported separately.
 - Official cookbook/ACP read via web; current exact official master SHA cannot be established from stale GitHub history. Host SHA and actual loading remain AC-62 Mac prerequisites. No credential inspection or live paid calls.
 - Push scaffold failed: DNS for cnb.cool. Each module push will still be attempted; bundle and PR body retained for delivery if networking remains blocked.
+- Task 2 M1 complete: exclusive ingress modes; local monotonic stamp/sequence; source-scoped dedup; bounded raw buffer and reconnect. RED→GREEN: 12/12 (`npm test`). Actual douyinLive packet/identity compatibility remains Mac rehearsal. Push retried below.
