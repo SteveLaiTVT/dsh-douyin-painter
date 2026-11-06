@@ -17,6 +17,8 @@
     "node": ">=22"
   },
   "scripts": {
+    "start": "node server.js",
+    "test:standalone": "node --test --test-isolation=none tests/standalone/*.test.js",
     "test": "node --test --test-isolation=none tests/AC-*.test.js",
     "test:network": "node --test --test-isolation=none tests/network/*.test.js",
     "check": "node --experimental-vm-modules scripts/check.mjs",

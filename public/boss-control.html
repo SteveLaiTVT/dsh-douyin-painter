@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>弹幕画师 · 老板模式</title><link rel="stylesheet" href="/app.css"></head>
+<body class="control"><header><h1>弹幕画师 · 老板模式</h1><p>控制页打开即用。<a href="/stage" target="_blank" rel="noopener">打开舞台页</a>，在直播伴侣采集舞台。</p></header>
+<div id="warning" role="alert">正在连接本机服务</div><main>
+<nav><button data-action="start">开新轮</button><button data-action="stop">停收</button><button data-action="cancel">取消本轮</button><button data-action="restore">确认并上屏已审画面</button><button class="danger" data-action="mask">紧急遮罩</button></nav>
+<section><h2>本场状态</h2><pre id="status"></pre></section>
+<section><h2>手动代录</h2><form id="manual"><label>观众编号<input id="viewer"></label><label>昵称<input id="nickname"></label><label>投稿<input id="comment" placeholder="画：月亮上的小猫" required></label><button>提交代录</button></form><div id="submissions"></div></section>
+</main><script type="module" src="/boss-control.js"></script></body></html>
