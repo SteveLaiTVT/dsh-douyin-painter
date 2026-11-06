@@ -29,7 +29,7 @@ export class StandaloneHost extends Runtime {
       throw e;
     }
   }
-  constructor({ dataRoot = resolve("data"), showId = "boss" } = {}, options = {}) {
+  constructor({ dataRoot = resolve("data"), showId } = {}, options = {}) {
     const config = loadConfig({ runtimeRoot: join(dataRoot, "runtime"), showId, transport: "manual", budgetLimit: 5 }, {});
     config.gifModel = config.stillModel;
     config.mock = true;
@@ -75,6 +75,7 @@ export class StandaloneHost extends Runtime {
   }
   configureImagePaths() {
     const c = this.config;
+    c.stillModel = c.gifModel = c.mock ? "mock-demo" : "gpt-image-2.6-flare";
     c.project = "";
     c.verifiedPaths = ["still", "gif"].map((phase) => ({ phase, model: c[`${phase}Model`], project: "", endpoint: "generations", verified: true }));
     for (const p of c.verifiedPaths) p.signature = this.images.signature(p.phase);
@@ -104,28 +105,40 @@ export class StandaloneHost extends Runtime {
     });
   }
   async command(input, session = { operator: "本机操作员" }) {
+    requireThat(!this.closing && session?.operator, "控制服务正在关闭");
+    requireThat(!this.starting || ["cancel", "mask", "reject-asset"].includes(input.action), "正在初始化新轮，请稍后操作");
+    if (input.action === "start") {
+      this.starting = true;
+      const settings = { ...this.settings.current };
+      try {
+        const K = await this.rounds.start();
+        this.config.mock = !settings.apiKey;
+        this.images.api = this.config.mock ? new MockImages() : new OpenAIImages({ apiKey: settings.apiKey });
+        this.configureImagePaths();
+        await this.j.commit("standalone-round-mode", [{ table: "config", id: `demo:${K.round_id}`, value: this.config.mock }]);
+        await this.publisher.publish();
+        return { ok: true };
+      } finally { this.starting = false; }
+    }
     if (input.action === "stop-rank") {
       requireThat(this.rounds.current?.phase === "collect" && !this.privateState().submissions.length, "先完成待审投稿，再停收评选");
       await super.command({ action: "stop" }, session);
       return super.command({ ...input, action: "rank-manual" }, session);
     }
-    const result = await super.command(input, session);
-    if (input.action === "start") {
-      this.config.mock = !this.settings.current.apiKey;
-      this.images.api = this.config.mock ? new MockImages() : new OpenAIImages({ apiKey: this.settings.current.apiKey });
-      this.configureImagePaths();
-      await this.j.commit("standalone-round-mode", [{ table: "config", id: `demo:${this.rounds.current.K.round_id}`, value: this.config.mock }]);
-      await this.publisher.publish();
-    }
-    return result;
+    return super.command(input, session);
   }
   async generate(K, phase, options) {
-    const mock = this.j.state.config[`demo:${K.round_id}`] !== false;
+    const mock = this.j.state.config[`demo:${K.round_id}`];
+    requireThat(typeof mock === "boolean" && !this.starting, "本轮生成来源尚未确认");
     try { return await super.generate(K, phase, options); }
     finally {
       if (mock) for (const r of Object.values(this.j.state.requests))
-        if (sameK(r.K, K) && r.phase === phase && r.actual === null) await this.budget.settle(r.request_id, 0, { source: "本地 MOCK，无网络调用" });
+        if (sameK(r.K, K) && r.phase === phase && r.model === "mock-demo" && r.actual === null) await this.budget.settle(r.request_id, 0, { source: "本地 MOCK，无网络调用" });
     }
+  }
+  async tick() {
+    if (this.starting) return;
+    return super.tick();
   }
   async close() {
     this.closing = true;
