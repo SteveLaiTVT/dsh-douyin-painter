@@ -23,7 +23,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.log(host.config.mock ? "MOCK 演示模式：未配置 API Key，不调用 OpenAI，舞台与图片均标注演示。" : "OpenAI 模式：使用本机已保存的 Key，所有文字与图像仍须审核后上屏。");
     console.log("关闭这个终端窗口即停止服务；也可按 Ctrl+C 停止。");
   } catch (e) {
-    console.error(e.code === "EADDRINUSE" ? "端口 7321 已被占用，请先关闭上一个启动窗口。" : "启动失败，请检查 data 目录权限与本机设置文件。");
+    console.error(e.code === "EADDRINUSE" ? "端口 7321 已被占用，请先关闭上一个启动窗口。" : e.syscall === "listen" ? `无法监听 127.0.0.1:7321：当前运行环境拒绝本地服务（${e.code || "unknown"}）。` : "启动失败，请检查 data 目录权限与本机设置文件。");
     process.exit(1);
   }
 }
