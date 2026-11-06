@@ -10,3 +10,7 @@
 - CNB CLI get-issue #3–#10 retried: ConnectionRefused. Comments #10/#9/#5 will be retried separately; cached excerpts are only fallback evidence.
 - Normal Tencent registry installation attempted: EAI_AGAIN DNS. Use available verified package tarball/cache; retain full-frame decoding requirements.
 - Ruling: continue in the requested checkout with existing /tmp Git metadata; read-only .git prevents ordinary branch creation. No additional worktree or redesign.
+- Task 1 foundation complete: Journal single writer, fsync/atomic indexes, running/clean witness and barriers; money ledger; local auth; owned DSH bridge. RED→GREEN: 10/10 tests (`npm test`). AC-66 covers intent write/fsync, revoked event/index and close fsync failure followed by crash/restart and later clean exit.
+- Ruling: Node default test subprocess isolation fails in this sandbox; same tests execute using `--test-isolation=none` (10 pass). Test execution is real, process decoder/browser capability will be reported separately.
+- Official cookbook/ACP read via web; current exact official master SHA cannot be established from stale GitHub history. Host SHA and actual loading remain AC-62 Mac prerequisites. No credential inspection or live paid calls.
+- Push scaffold failed: DNS for cnb.cool. Each module push will still be attempted; bundle and PR body retained for delivery if networking remains blocked.
