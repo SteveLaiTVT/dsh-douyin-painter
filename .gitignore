@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.runtime/
+.superpowers/
+coverage/
+delivery/*.bundle
+delivery/*.patch
