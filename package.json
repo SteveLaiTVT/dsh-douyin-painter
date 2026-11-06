@@ -4,15 +4,34 @@
   "type": "module",
   "private": true,
   "description": "DSH in-process external protocol driver for 弹幕画师 DESIGN v1.3",
-  "exports": { ".": "./index.js", "./cordis.patch.yml": "./cordis.patch.yml" },
-  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } },
-  "engines": { "node": ">=22" },
+  "exports": {
+    ".": "./index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "node --test --test-isolation=none tests/AC-*.test.js",
-    "check": "node scripts/check.mjs",
+    "test:network": "node --test --test-isolation=none tests/network/*.test.js",
+    "check": "node --experimental-vm-modules scripts/check.mjs",
     "test:browser": "node --test --test-isolation=none tests/browser/*.test.js"
   },
-  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.1" },
-  "peerDependenciesMeta": { "@deepseek-ai/cordis": { "optional": true } },
-  "dependencies": { "omggif": "1.0.10", "ws": "8.22.1" }
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "omggif": "1.0.10",
+    "ws": "8.22.1"
+  }
 }

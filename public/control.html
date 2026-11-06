@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>弹幕画师 · 操作员控制窗（不采集）</title>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body class="control">
+    <header>
+      <h1>弹幕画师 · 控制窗</h1>
+      <p>
+        此窗口不进入采集。舞台另开 /stage；开场口播：画面由 AI
+        生成，过程含演绎动画。
+      </p>
+    </header>
+    <div id="warning" role="alert">尚未连接；请保持备用安全场景</div>
+    <form id="login">
+      <label
+        >本次一次性令牌
+        <input id="token" type="password" required autocomplete="off" /></label
+      ><button>连接控制会话</button>
+    </form>
+    <main id="console" hidden>
+      <nav>
+        <button data-action="start">开新轮</button
+        ><button data-action="stop">停收</button
+        ><button data-action="cancel">取消本轮</button
+        ><button data-action="mask" class="danger">紧急遮罩</button
+        ><button data-action="restore">核对并恢复已审快照</button
+        ><button data-action="replay">重播已审静图</button
+        ><button data-action="logout">注销</button>
+      </nav>
+      <section>
+        <h2>本场状态</h2>
+        <pre id="status"></pre>
+        <pre id="recovery"></pre>
+        <pre id="budget"></pre>
+        <form id="budget-form">
+          <label
+            >单场预算上限（美元；建议5，须显式保存）<input
+              id="budget-limit"
+              type="number"
+              min="0"
+              step="0.01" /></label
+          ><button>保存预算</button>
+        </form>
+        <p>约 $0.025/图、9次约 $0.225 仅为规划估算，不能作为费用上界。</p>
+      </section>
+      <section>
+        <h2>接入与代录</h2>
+        <button id="mode">切换 WS / 主播代录</button>
+        <form id="manual">
+          <input id="viewer" placeholder="本场观众编号（未知可留空）" /><input
+            id="nickname"
+            placeholder="昵称（同样审核）"
+          /><input id="comment" placeholder="画：提示词" required /><button>
+            受理代录
+          </button>
+        </form>
+      </section>
+      <section>
+        <h2>审词（每批最多10项）</h2>
+        <div id="submissions"></div>
+      </section>
+      <section>
+        <h2>评选 · 全候选三项0–5整数</h2>
+        <div id="scores"></div>
+        <label>画面说明 <textarea id="prompt" maxlength="500"></textarea></label
+        ><button id="rank">提交全候选评分</button>
+        <div id="ranking"></div>
+        <button data-action="publish-ranking">确认理由并发布榜单</button>
+        <p>评选、一次修复及人工确认共用10秒，到限不发布。</p>
+      </section>
+      <section>
+        <h2>出图与审批</h2>
+        <button data-action="generate-still">开始静图</button
+        ><button data-action="generate-gif">开始GIF</button
+        ><button data-action="retry-still">人工重发静图（计重试/费用）</button
+        ><button data-action="retry-gif">人工重发GIF（计重试/费用）</button>
+        <div id="assets"></div>
+      </section>
+      <section>
+        <h2>本场私有对账</h2>
+        <form id="cost-form">
+          <label>请求关联 id <input id="cost-request" required /></label
+          ><label
+            >已核对实际美元费用
+            <input
+              id="cost-value"
+              type="number"
+              min="0"
+              step="0.000001"
+              required /></label
+          ><label>账单核对依据 <input id="cost-evidence" required /></label
+          ><button>结算并替换预留</button>
+        </form>
+        <pre id="audit"></pre>
+      </section>
+    </main>
+    <script type="module" src="/control.js"></script>
+  </body>
+</html>

@@ -1,6 +1,152 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp} from 'node:fs/promises';import {join} from 'node:path';import {tmpdir} from 'node:os';import {Journal} from '../lib/journal.js';import {Budget} from '../lib/budget.js';import {RoundEngine} from '../lib/rounds.js';import {AssetStore} from '../lib/assets.js';import {Moderation} from '../lib/moderation.js';import {png,gif} from './fixtures.js';import {hash,canonical} from '../lib/util.js';
-const mod=await import('../lib/images.js').catch(()=>({}));
-async function fixture(api){assert.equal(typeof mod.Images,'function');const j=await Journal.open(await mkdtemp(join(tmpdir(),'ac-images-')),'s');const rounds=new RoundEngine(j);const K=await rounds.start();const assets=new AssetStore(j),m=new Moderation(j,assets),budget=new Budget(j);await budget.configure(5);const text=await m.reviewText(K,{prompt:'月亮猫'});await m.approveText({operator:'op',K,id:text.id,sha256:text.sha256,version:1});await j.commit('ranking',[{table:'rankings',id:K.round_id,value:{K,approved:true,ranked:[{id:'winner'}],prompt:'月亮猫',text_id:text.id,text_hash:text.sha256}}]);
- const config={stillModel:'gpt-image-2.6-flare',gifModel:'gpt-image-2.6-flare',project:'mock-project',verifiedPaths:[{phase:'still',model:'gpt-image-2.6-flare',project:'mock-project',endpoint:'generations',verified:true},{phase:'gif',model:'gpt-image-2.6-flare',project:'mock-project',endpoint:'generations',verified:true}],costRules:[{verified:true,upper_bound_usd:0.2,max_prompt_chars:500,max_image_bytes:20*1024*1024,signature:'fixture',evidence:'mock only'}]};const images=new mod.Images({j,rounds,assets,moderation:m,budget,api,config});config.costRules[0].signature=images.signature('still');for(const p of config.verifiedPaths)p.signature=images.signature(p.phase);return {j,rounds,K,assets,m,budget,images,config};}
-test('AC-34/35/36/37: still before GIF, exact Images parameters, full assets remain unapproved until exact human action',async()=>{let request;const f=await fixture({async *stream(params){request=params;yield {type:'partial',index:0,bytes:png()};yield {type:'completed',bytes:png(1024,1024),usage:{output_tokens:100}};},async gif(params){assert.equal('stream'in params,false);assert.equal(params.frame_count,6);return {bytes:gif()};}});await assert.rejects(f.images.generate(f.K,'gif'));await f.images.generate(f.K,'still');assert.equal(request.partial_images,2);assert.equal(request.moderation,'auto');const still=Object.values(f.j.state.assets).find(a=>a.kind==='still');assert.equal(f.assets.canPublish(still.id),false);await f.m.approveAsset({operator:'op',K:f.K,id:still.id,sha256:still.sha256,version:1});f.config.costRules.push({...f.config.costRules[0],signature:f.images.signature('gif')});await f.images.generate(f.K,'gif');const g=Object.values(f.j.state.assets).find(a=>a.kind==='gif');assert.equal(g.info.frames,6);assert.equal(f.assets.canPublish(g.id),false);assert.equal(f.budget.summary().reserved,0.4);});
-test('AC-16/23/38/48: cancelled request still receives late safety/usage and keeps reservation',async()=>{let resume;const gate=new Promise(r=>resume=r);const f=await fixture({async *stream(){await gate;const e=Error('blocked');e.code='moderation_blocked';throw e;}});const p=f.images.generate(f.K,'still');while(f.budget.summary().requests===0)await new Promise(setImmediate);await f.images.cancel(f.K);await f.rounds.cancel();resume();await p;assert.equal(f.j.isAllowed(f.K),false);assert.equal(f.budget.summary().reserved,0.2);});
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { Journal } from "../lib/journal.js";
+import { Budget } from "../lib/budget.js";
+import { RoundEngine } from "../lib/rounds.js";
+import { AssetStore } from "../lib/assets.js";
+import { Moderation } from "../lib/moderation.js";
+import { png, gif } from "./fixtures.js";
+import { hash, canonical } from "../lib/util.js";
+const mod = await import("../lib/images.js").catch(() => ({}));
+async function fixture(api) {
+  assert.equal(typeof mod.Images, "function");
+  const j = await Journal.open(
+    await mkdtemp(join(tmpdir(), "ac-images-")),
+    "s",
+  );
+  const rounds = new RoundEngine(j);
+  const K = await rounds.start();
+  const assets = new AssetStore(j),
+    m = new Moderation(j, assets),
+    budget = new Budget(j);
+  await budget.configure(5);
+  const text = await m.reviewText(K, { prompt: "月亮猫" });
+  await m.approveText({
+    operator: "op",
+    K,
+    id: text.id,
+    sha256: text.sha256,
+    version: 1,
+  });
+  await j.commit("ranking", [
+    {
+      table: "rankings",
+      id: K.round_id,
+      value: {
+        K,
+        approved: true,
+        ranked: [{ id: "winner" }],
+        prompt: "月亮猫",
+        text_id: text.id,
+        text_hash: text.sha256,
+      },
+    },
+  ]);
+  const config = {
+    stillModel: "gpt-image-2.6-flare",
+    gifModel: "gpt-image-2.6-flare",
+    project: "mock-project",
+    verifiedPaths: [
+      {
+        phase: "still",
+        model: "gpt-image-2.6-flare",
+        project: "mock-project",
+        endpoint: "generations",
+        verified: true,
+      },
+      {
+        phase: "gif",
+        model: "gpt-image-2.6-flare",
+        project: "mock-project",
+        endpoint: "generations",
+        verified: true,
+      },
+    ],
+    costRules: [
+      {
+        verified: true,
+        upper_bound_usd: 0.2,
+        max_prompt_chars: 500,
+        max_image_bytes: 20 * 1024 * 1024,
+        signature: "fixture",
+        evidence: "mock only",
+      },
+    ],
+  };
+  const images = new mod.Images({
+    j,
+    rounds,
+    assets,
+    moderation: m,
+    budget,
+    api,
+    config,
+  });
+  config.costRules[0].signature = images.signature("still");
+  for (const p of config.verifiedPaths) p.signature = images.signature(p.phase);
+  return { j, rounds, K, assets, m, budget, images, config };
+}
+test("AC-34/35/36/37: still before GIF, exact Images parameters, full assets remain unapproved until exact human action", async () => {
+  let request;
+  const f = await fixture({
+    async *stream(params) {
+      request = params;
+      yield { type: "partial", index: 0, bytes: png() };
+      yield {
+        type: "completed",
+        bytes: png(1024, 1024),
+        usage: { output_tokens: 100 },
+      };
+    },
+    async gif(params) {
+      assert.equal("stream" in params, false);
+      assert.equal(params.frame_count, 6);
+      return { bytes: gif() };
+    },
+  });
+  await assert.rejects(f.images.generate(f.K, "gif"));
+  await f.images.generate(f.K, "still");
+  assert.equal(request.partial_images, 2);
+  assert.equal(request.moderation, "auto");
+  const still = Object.values(f.j.state.assets).find((a) => a.kind === "still");
+  assert.equal(f.assets.canPublish(still.id), false);
+  await f.m.approveAsset({
+    operator: "op",
+    K: f.K,
+    id: still.id,
+    sha256: still.sha256,
+    version: 1,
+  });
+  f.config.costRules.push({
+    ...f.config.costRules[0],
+    signature: f.images.signature("gif"),
+  });
+  await f.images.generate(f.K, "gif");
+  const g = Object.values(f.j.state.assets).find((a) => a.kind === "gif");
+  assert.equal(g.info.frames, 6);
+  assert.equal(f.assets.canPublish(g.id), false);
+  assert.equal(f.budget.summary().reserved, 0.4);
+});
+test("AC-16/23/38/48: cancelled request still receives late safety/usage and keeps reservation", async () => {
+  let resume;
+  const gate = new Promise((r) => (resume = r));
+  const f = await fixture({
+    async *stream() {
+      await gate;
+      const e = Error("blocked");
+      e.code = "moderation_blocked";
+      throw e;
+    },
+  });
+  const p = f.images.generate(f.K, "still");
+  while (f.budget.summary().requests === 0) await new Promise(setImmediate);
+  await f.images.cancel(f.K);
+  await f.rounds.cancel();
+  resume();
+  await p;
+  assert.equal(f.j.isAllowed(f.K), false);
+  assert.equal(f.budget.summary().reserved, 0.2);
+});

@@ -1,8 +1,151 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {mkdtemp,writeFile} from 'node:fs/promises';import {join} from 'node:path';import {tmpdir} from 'node:os';import {Journal} from '../lib/journal.js';import {hash,canonical} from '../lib/util.js';
-const M=await import('../lib/moderation.js').catch(()=>({})),A=await import('../lib/assets.js').catch(()=>({}));
-async function fixture(){assert.equal(typeof M.Moderation,'function');const j=await Journal.open(await mkdtemp(join(tmpdir(),'ac-mod-')),'s');const K={show_id:'s',round_id:'r',generation:1};await j.commit('round',[{table:'rounds',id:'r',value:{K}}]);const assets=new A.AssetStore(j,{inspect:async bytes=>({sha256:hash(bytes),format:'png',width:1,height:1,frames:1,decoded:true})});const m=new M.Moderation(j,assets);return {j,K,m,assets};}
-test('AC-21/22: no auto approval; nickname alias, exact text hash and rewrite invalidation',async()=>{const {m,K}=await fixture();const t=await m.reviewText(K,{text:'月亮猫',nickname:'隐私电话12345678901'},{alias:'观众 017'});assert.equal(t.approved,false);assert.equal(t.content.nickname,'观众 017');const approved=await m.approveText({operator:'op',K,id:t.id,sha256:t.sha256,version:1});assert.equal(approved.approved,true);const rewrite=await m.rewrite(t.id,{text:'云朵猫',nickname:'观众 017'});assert.equal(rewrite.approved,false);await assert.rejects(m.approveText({operator:'op',K,id:t.id,sha256:t.sha256,version:1}));assert.equal(m.isApprovedText(t.id,t.sha256),false);});
-test('AC-24/25/44: partial and final approvals independent, wrong hash/actor/K rejected, byte replacement denied',async()=>{const f=await fixture();const a=await f.assets.checked(Buffer.from('first'),{K:f.K,kind:'partial'});const b=await f.assets.checked(Buffer.from('second'),{K:f.K,kind:'still'});for(const patch of [{operator:''},{sha256:'wrong'},{K:{...f.K,generation:0}}])await assert.rejects(f.m.approveAsset({operator:'op',K:f.K,id:a.id,sha256:a.sha256,version:1,...patch}));await f.m.approveAsset({operator:'op',K:f.K,id:a.id,sha256:a.sha256,version:1});assert.equal(f.assets.canPublish(a.id),true);assert.equal(f.assets.canPublish(b.id),false);const seq=f.j.seq;await f.m.approveAsset({operator:'op',K:f.K,id:a.id,sha256:a.sha256,version:1});assert.equal(f.j.seq,seq);await writeFile(a.path,'tampered');await assert.rejects(f.assets.read(a.id,{public:true}));});
-test('AC-16/17/19/23/26: late unknown-stage block revokes every generation and derivative; explicit input-only can end neutral',async()=>{const f=await fixture();const a=await f.assets.checked(Buffer.from('original'),{K:f.K,kind:'still'});await f.j.commit('request',[{table:'requests',id:'req',value:{request_id:'req',K:f.K,phase:'still'}}]);const next={...f.K,generation:2};await f.j.commit('round',[{table:'rounds',id:'r',value:{K:next}}]);await f.m.moderationBlocked('req',{code:'moderation_blocked'});assert.equal(f.j.isAllowed(next),false);await assert.rejects(f.assets.checked(Buffer.from('copy'),{K:next,parents:[a.id]}));await assert.rejects(f.m.approveAsset({operator:'op',K:next,id:a.id,sha256:a.sha256,version:1}));assert.equal(f.assets.canPublish(a.id),false);
- const other={...f.K,round_id:'new'};await f.j.commit('round',[{table:'rounds',id:'new',value:{K:other}},{table:'requests',id:'input',value:{K:other}}]);await f.m.moderationBlocked('input',{code:'moderation_blocked',moderation_details:{moderation_stage:'input'}},false);assert.equal(f.j.isAllowed(other),true);
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { Journal } from "../lib/journal.js";
+import { hash, canonical } from "../lib/util.js";
+const M = await import("../lib/moderation.js").catch(() => ({})),
+  A = await import("../lib/assets.js").catch(() => ({}));
+async function fixture() {
+  assert.equal(typeof M.Moderation, "function");
+  const j = await Journal.open(await mkdtemp(join(tmpdir(), "ac-mod-")), "s");
+  const K = { show_id: "s", round_id: "r", generation: 1 };
+  await j.commit("round", [{ table: "rounds", id: "r", value: { K } }]);
+  const assets = new A.AssetStore(j, {
+    inspect: async (bytes) => ({
+      sha256: hash(bytes),
+      format: "png",
+      width: 1,
+      height: 1,
+      frames: 1,
+      decoded: true,
+    }),
+  });
+  const m = new M.Moderation(j, assets);
+  return { j, K, m, assets };
+}
+test("AC-21/22: no auto approval; nickname alias, exact text hash and rewrite invalidation", async () => {
+  const { m, K } = await fixture();
+  const t = await m.reviewText(
+    K,
+    { text: "月亮猫", nickname: "隐私电话12345678901" },
+    { alias: "观众 017" },
+  );
+  assert.equal(t.approved, false);
+  assert.equal(t.content.nickname, "观众 017");
+  const approved = await m.approveText({
+    operator: "op",
+    K,
+    id: t.id,
+    sha256: t.sha256,
+    version: 1,
+  });
+  assert.equal(approved.approved, true);
+  const rewrite = await m.rewrite(t.id, {
+    text: "云朵猫",
+    nickname: "观众 017",
+  });
+  assert.equal(rewrite.approved, false);
+  await assert.rejects(
+    m.approveText({
+      operator: "op",
+      K,
+      id: t.id,
+      sha256: t.sha256,
+      version: 1,
+    }),
+  );
+  assert.equal(m.isApprovedText(t.id, t.sha256), false);
+});
+test("AC-24/25/44: partial and final approvals independent, wrong hash/actor/K rejected, byte replacement denied", async () => {
+  const f = await fixture();
+  const a = await f.assets.checked(Buffer.from("first"), {
+    K: f.K,
+    kind: "partial",
+  });
+  const b = await f.assets.checked(Buffer.from("second"), {
+    K: f.K,
+    kind: "still",
+  });
+  for (const patch of [
+    { operator: "" },
+    { sha256: "wrong" },
+    { K: { ...f.K, generation: 0 } },
+  ])
+    await assert.rejects(
+      f.m.approveAsset({
+        operator: "op",
+        K: f.K,
+        id: a.id,
+        sha256: a.sha256,
+        version: 1,
+        ...patch,
+      }),
+    );
+  await f.m.approveAsset({
+    operator: "op",
+    K: f.K,
+    id: a.id,
+    sha256: a.sha256,
+    version: 1,
+  });
+  assert.equal(f.assets.canPublish(a.id), true);
+  assert.equal(f.assets.canPublish(b.id), false);
+  const seq = f.j.seq;
+  await f.m.approveAsset({
+    operator: "op",
+    K: f.K,
+    id: a.id,
+    sha256: a.sha256,
+    version: 1,
+  });
+  assert.equal(f.j.seq, seq);
+  await writeFile(a.path, "tampered");
+  await assert.rejects(f.assets.read(a.id, { public: true }));
+});
+test("AC-16/17/19/23/26: late unknown-stage block revokes every generation and derivative; explicit input-only can end neutral", async () => {
+  const f = await fixture();
+  const a = await f.assets.checked(Buffer.from("original"), {
+    K: f.K,
+    kind: "still",
+  });
+  await f.j.commit("request", [
+    {
+      table: "requests",
+      id: "req",
+      value: { request_id: "req", K: f.K, phase: "still" },
+    },
+  ]);
+  const next = { ...f.K, generation: 2 };
+  await f.j.commit("round", [{ table: "rounds", id: "r", value: { K: next } }]);
+  await f.m.moderationBlocked("req", { code: "moderation_blocked" });
+  assert.equal(f.j.isAllowed(next), false);
+  await assert.rejects(
+    f.assets.checked(Buffer.from("copy"), { K: next, parents: [a.id] }),
+  );
+  await assert.rejects(
+    f.m.approveAsset({
+      operator: "op",
+      K: next,
+      id: a.id,
+      sha256: a.sha256,
+      version: 1,
+    }),
+  );
+  assert.equal(f.assets.canPublish(a.id), false);
+  const other = { ...f.K, round_id: "new" };
+  await f.j.commit("round", [
+    { table: "rounds", id: "new", value: { K: other } },
+    { table: "requests", id: "input", value: { K: other } },
+  ]);
+  await f.m.moderationBlocked(
+    "input",
+    {
+      code: "moderation_blocked",
+      moderation_details: { moderation_stage: "input" },
+    },
+    false,
+  );
+  assert.equal(f.j.isAllowed(other), true);
 });
