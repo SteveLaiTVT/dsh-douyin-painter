@@ -1,0 +1,7 @@
+
+> dsh-douyin-painter@1.0.0 check
+> node --experimental-vm-modules scripts/check.mjs
+
+(node:64) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Syntax checked 54 modules; package entry imports successfully.

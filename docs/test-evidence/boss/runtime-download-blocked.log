@@ -1,0 +1,5 @@
+Downloading official Node 24 metadata from https://mirrors.cloud.tencent.com/nodejs-release/latest-v24.x
+curl: (6) Could not resolve host: mirrors.cloud.tencent.com
+Downloading official Node 24 metadata from https://nodejs.org/dist/latest-v24.x
+curl: (6) Could not resolve host: nodejs.org
+Unable to download Node 24 darwin-arm64 from either official source/mirror. No placeholder binary was installed.

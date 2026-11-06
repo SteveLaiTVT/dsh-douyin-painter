@@ -1,0 +1,21 @@
+
+> dsh-douyin-painter@1.0.0 test:standalone
+> node --test --test-isolation=none tests/standalone/*.test.js
+
+✔ boss host runs the original review pipeline without DSH or token files; unreviewed MOCK pixels stay private and safety revokes immediately (1621.595521ms)
+✔ boss HTTP handlers serve both pages and persist settings without login; Host, Origin and JSON still guard writes (1126.029221ms)
+✔ mac launcher prefers bundled Node, opens control after one second, and HUP terminates the server (1123.252585ms)
+✔ launcher falls back to system Node when runtime/node is absent (8.436143ms)
+✔ launcher with no Node shows the macOS dialog and opens the official download page (9.340271ms)
+✔ round source is frozen before the first publication, so a delayed start cannot classify a live request as MOCK (1158.68538ms)
+✔ a fresh launch starts a new show and keeps the previous show's journal intact (2231.072188ms)
+✔ settings persist defaults and sparse concurrent edits atomically, never return a key (16.509656ms)
+✔ settings apply without restart; a saved key cannot relabel an existing MOCK round or leak to the ledger (1266.446014ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8638.901828

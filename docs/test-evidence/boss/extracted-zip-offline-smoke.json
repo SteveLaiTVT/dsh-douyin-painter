@@ -1,0 +1,14 @@
+{
+  "systemNode": "v24.22.0",
+  "extractedRoot": "/tmp/boss-zip-final/danmu-painter-mac",
+  "networkListener": "NOT TESTED (offline handler mode)",
+  "assertions": [
+    "/control production handler 200",
+    "/stage production handler 200",
+    "settings API save, GET reread and disk reread",
+    "manual submission → human text review → full ranking → ranking approval → MOCK still → still approval → GIF → full-frame GIF approval → stage applied state",
+    "unreviewed text/pixels never projected; demo round label retained; reconnect restores approved still",
+    "immediate round-wide safety revocation; MOCK actual/reserved cost both zero"
+  ],
+  "status": "PASS (offline; real TCP/curl and Mac capture remain unverified)"
+}

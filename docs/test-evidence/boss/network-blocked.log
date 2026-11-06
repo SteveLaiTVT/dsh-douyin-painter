@@ -1,0 +1,28 @@
+
+> dsh-douyin-painter@1.0.0 test:network
+> node --test --test-isolation=none tests/network/*.test.js
+
+✖ AC-50/58–61: real loopback HTTP validates exact Host/Origin and every private/control endpoint (11.520249ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 100.343891
+
+✖ failing tests:
+
+test at tests/network/AC-58-61-http.test.js:5:1
+✖ AC-50/58–61: real loopback HTTP validates exact Host/Origin and every private/control endpoint (11.520249ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2368:21)
+      at listenInCluster (node:net:2499:12)
+      at node:net:2728:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
