@@ -1,0 +1,52 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, stat, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { StandaloneHost } from "../../standalone/host.js";
+const { Settings } = await import("../../standalone/settings.js").catch(() => ({}));
+
+test("settings persist defaults and sparse concurrent edits atomically, never return a key", async (t) => {
+  assert.equal(typeof Settings, "function");
+  const root = await mkdtemp(join(tmpdir(), "boss-settings-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const settings = await Settings.open(root);
+  assert.deepEqual(settings.view(), { budgetUsd: 5, roomKey: "", douyinLive: false, apiKeyConfigured: false });
+  await settings.save({ apiKey: "test-only-not-a-real-key", budgetUsd: 8 });
+  await Promise.all([settings.save({ roomKey: "123456" }), settings.save({ budgetUsd: 7 })]);
+  const disk = JSON.parse(await readFile(join(root, "settings.json"), "utf8"));
+  assert.equal(disk.apiKey, "test-only-not-a-real-key");
+  assert.equal(disk.roomKey, "123456");
+  assert.equal(disk.budgetUsd, 7);
+  assert.equal((await stat(join(root, "settings.json"))).mode & 0o777, 0o600);
+  const reopened = await Settings.open(root);
+  assert.equal(reopened.view().apiKeyConfigured, true);
+  assert.equal(JSON.stringify(reopened.view()).includes("test-only"), false);
+  for (const patch of [{ budgetUsd: -1 }, { budgetUsd: null }, { budgetUsd: "" }, { douyinLive: "false" }, { apiKey: "line\nbreak" }, { roomKey: "x".repeat(201) }]) await assert.rejects(settings.save(patch));
+  assert.equal(settings.view().budgetUsd, 7);
+  await settings.save({ apiKey: "" });
+  assert.equal(settings.view().apiKeyConfigured, false);
+});
+
+test("settings apply without restart; a saved key cannot relabel an existing MOCK round or leak to the ledger", async (t) => {
+  const dataRoot = await mkdtemp(join(tmpdir(), "boss-hot-"));
+  const host = await StandaloneHost.open({ dataRoot }, { listen: false, autoTick: false });
+  t.after(async () => { await host.close(); await rm(dataRoot, { recursive: true, force: true }); });
+  assert.equal(typeof host.updateSettings, "function");
+  await host.command({ action: "start" });
+  await host.updateSettings({ apiKey: "test-only-never-use-network", budgetUsd: 12, roomKey: "room-1" });
+  assert.equal(host.budget.summary().limit, 12);
+  assert.equal(host.ingress.roomKey, "room-1");
+  assert.equal(host.ingress.mode, "manual");
+  assert.equal(host.publisher.build().demo, true);
+  assert.equal(host.privateState().generation.nextRoundMock, false);
+  assert.equal(JSON.stringify(host.privateState()).includes("test-only"), false);
+  assert.equal((await readFile(join(host.j.root, "events.jsonl"), "utf8")).includes("test-only"), false);
+  await host.command({ action: "cancel" });
+  await host.command({ action: "start" });
+  assert.equal(host.publisher.build().demo, false);
+  assert.equal(host.images.api.apiKey, "test-only-never-use-network");
+  await host.updateSettings({ apiKey: "", budgetUsd: 0 });
+  assert.equal(host.publisher.build().demo, false);
+  assert.equal(host.budget.summary().stopped, true);
+});

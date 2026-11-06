@@ -6,15 +6,19 @@ const pages = new Map([
   ["/", "boss-control.html"], ["/control", "boss-control.html"],
   ["/stage", "boss-stage.html"], ["/boss-control.js", "boss-control.js"],
   ["/boss-stage.js", "boss-stage.js"],
+  ["/boss.css", "boss.css"],
 ]);
 
 export class BossServer extends LocalServer {
   constructor(options) {
     super(options);
+    this.settings = options.settings;
+    this.updateSettings = options.updateSettings;
     this.origin = "http://127.0.0.1:7321";
     // No login, session, cookie or token file. Source checks still reject remote pages.
     this.auth = {
       source: (headers, write = false) => {
+        requireThat(this.ready !== false, "服务正在启动");
         requireThat(headers.host === "127.0.0.1:7321", "本机地址不匹配");
         requireThat(!headers.origin || headers.origin === this.origin, "跨站请求已拒绝");
         requireThat(!headers["sec-fetch-site"] || ["same-origin", "none"].includes(headers["sec-fetch-site"]), "跨站请求已拒绝");
@@ -42,8 +46,16 @@ export class BossServer extends LocalServer {
         res.setHeader("X-Content-Type-Options", "nosniff");
         res.setHeader("Referrer-Policy", "no-referrer");
         res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'");
-        res.setHeader("Content-Type", file.endsWith(".html") ? "text/html; charset=utf-8" : "text/javascript; charset=utf-8");
+        res.setHeader("Content-Type", file.endsWith(".html") ? "text/html; charset=utf-8" : file.endsWith(".css") ? "text/css; charset=utf-8" : "text/javascript; charset=utf-8");
         return res.end(await readFile(new URL(`../public/${file}`, import.meta.url)));
+      }
+      if (req.url === "/api/settings") {
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("Content-Type", "application/json; charset=utf-8");
+        if (req.method === "GET") return res.end(JSON.stringify(this.settings.view()));
+        if (req.method !== "POST") { res.writeHead(405); return res.end(); }
+        try { return res.end(JSON.stringify(await this.updateSettings(await this.body(req)))); }
+        catch { res.writeHead(400); return res.end(JSON.stringify({ error: "保存失败：预算须为非负数，开关须为布尔值；开启 douyinLive 前请填写直播间标识。请检查 data/settings.json 写入权限。" })); }
       }
       if (["/api/exchange", "/api/logout"].includes(req.url)) {
         res.writeHead(404); return res.end();

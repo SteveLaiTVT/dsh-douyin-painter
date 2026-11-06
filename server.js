@@ -20,7 +20,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.log("弹幕画师 · 老板模式");
     console.log("控制页：http://127.0.0.1:7321/control");
     console.log("舞台页：http://127.0.0.1:7321/stage");
-    console.log("MOCK 演示模式：未配置 API Key，不调用 OpenAI，舞台与图片均标注演示。");
+    console.log(host.config.mock ? "MOCK 演示模式：未配置 API Key，不调用 OpenAI，舞台与图片均标注演示。" : "OpenAI 模式：使用本机已保存的 Key，所有文字与图像仍须审核后上屏。");
     console.log("关闭这个终端窗口即停止服务；也可按 Ctrl+C 停止。");
   } catch (e) {
     console.error(e.code === "EADDRINUSE" ? "端口 7321 已被占用，请先关闭上一个启动窗口。" : "启动失败，请检查 data 目录权限与本机设置文件。");

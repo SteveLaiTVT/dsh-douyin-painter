@@ -1,9 +1,57 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>弹幕画师 · 老板模式</title><link rel="stylesheet" href="/app.css"></head>
-<body class="control"><header><h1>弹幕画师 · 老板模式</h1><p>控制页打开即用。<a href="/stage" target="_blank" rel="noopener">打开舞台页</a>，在直播伴侣采集舞台。</p></header>
-<div id="warning" role="alert">正在连接本机服务</div><main>
-<nav><button data-action="start">开新轮</button><button data-action="stop">停收</button><button data-action="cancel">取消本轮</button><button data-action="restore">确认并上屏已审画面</button><button class="danger" data-action="mask">紧急遮罩</button></nav>
-<section><h2>本场状态</h2><pre id="status"></pre></section>
-<section><h2>手动代录</h2><form id="manual"><label>观众编号<input id="viewer"></label><label>昵称<input id="nickname"></label><label>投稿<input id="comment" placeholder="画：月亮上的小猫" required></label><button>提交代录</button></form><div id="submissions"></div></section>
-</main><script type="module" src="/boss-control.js"></script></body></html>
+  <head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>弹幕画师 · 老板模式</title>
+    <link rel="stylesheet" href="/app.css"><link rel="stylesheet" href="/boss.css">
+  </head>
+  <body class="control">
+    <header><p class="eyebrow">本机独立版 · 单人操作</p><h1>弹幕画师 <span>老板模式</span></h1>
+      <p>开轮 → 代录 → 审词 → 评选 → 审图 → 上屏。<a href="/stage" target="_blank" rel="noopener">打开舞台页 ↗</a>，直播伴侣只采集舞台。</p>
+    </header>
+    <div id="warning" role="alert">正在连接本机服务</div>
+    <p id="notice" role="status" aria-live="polite"></p>
+    <main>
+      <section id="settings-section">
+        <h2>设置</h2>
+        <form id="settings">
+          <label>OpenAI API Key <input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="留空可先跑 MOCK 演示"></label>
+          <p id="key-status"></p>
+          <label>单场预算 USD <input id="budget-usd" type="number" min="0" max="1000000" step="0.01" value="5" required></label>
+          <label>直播间标识 <input id="room-key" maxlength="200" placeholder="手动代录可留空"></label>
+          <label><input id="douyin-live" type="checkbox"> 开启 douyinLive 弹幕接入</label>
+          <button>保存设置</button><button id="clear-key" type="button">清除已保存的 Key</button>
+        </form>
+        <p>默认关闭 douyinLive，使用下方「手动代录」。开启后连接本机 douyinLive（端口 1088）。</p>
+        <p>预算与接入保存即生效，无需重启；Key 在下一轮生效，当前轮来源保持原样。Key 明文保存于本机 <code>data/settings.json</code>，不会回显。</p>
+      </section>
+      <nav aria-label="轮次操作">
+        <button data-action="start">开新轮</button><button data-action="stop">仅停收</button>
+        <button data-action="cancel">取消本轮</button><button data-action="restore">确认并上屏已审画面</button>
+        <button data-action="mask" class="danger">紧急遮罩</button>
+      </nav>
+      <section><h2>本场状态</h2><p id="status"></p><p id="budget"></p><p id="transport"></p></section>
+      <section id="manual-section">
+        <h2>手动代录</h2>
+        <form id="manual"><label>观众编号（可留空）<input id="viewer" maxlength="200"></label>
+          <label>昵称（可留空）<input id="nickname" maxlength="100"></label>
+          <label>投稿<input id="comment" placeholder="画：月亮上的小猫" maxlength="100" required></label><button>提交代录</button>
+        </form><p>开轮后输入「画：提示词」，提示词 1–40 字。提交后仍需下方人工审核。</p>
+      </section>
+      <section><h2>审词 <span id="pending-count"></span></h2><div id="submissions"></div></section>
+      <section>
+        <h2>评选与画面说明</h2><p>先完成审词，再停收评选。默认各项同分，先收到者优先；主播可在停收前修改 0–5 整数分与理由（22–36 字）。这属于主播评选。</p>
+        <div id="scores"></div><label>画面说明（留空使用第一名的提示词）<textarea id="prompt" maxlength="500"></textarea></label>
+        <button id="rank">停收并提交全量评分</button>
+        <div id="ranking"></div><button id="publish-ranking">确认理由和说明，发布榜单</button>
+        <p>停收后须在 10 秒内确认榜单；到限不发布。榜单揭榜 12 秒后自动生成静图。</p>
+      </section>
+      <section><h2>审图后上屏</h2><p>静图终审 10 秒、GIF 终审 15 秒。未审素材只在此处预览；不合适请拒绝，整轮立即撤播。舞台首次连接或重连后，点「确认并上屏已审画面」。</p><div id="assets"></div></section>
+      <section><h2>本场费用</h2><p>真实请求每次先预留 $1，实际费用待账单核对；MOCK 完成后费用为 0。预算约束本机请求调度，OpenAI 账单可能延迟。预算设为 0 停止付费请求。</p>
+        <details><summary>查看请求与核对费用</summary><pre id="audit"></pre>
+          <form id="cost"><label>请求 ID<input id="cost-request" required></label><label>已核对费用 USD<input id="cost-value" type="number" min="0" step="0.000001" required></label><label>账单核对依据<input id="cost-evidence" required></label><button>记录已核对费用</button></form>
+        </details>
+      </section>
+    </main><script type="module" src="/boss-control.js"></script>
+  </body>
+</html>
