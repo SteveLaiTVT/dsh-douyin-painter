@@ -1,7 +1,4 @@
 import { readdir } from "node:fs/promises";
-import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
-import { resolve } from "node:path";
 const roots = ["lib", "public", "tests", "scripts"];
 const files = ["index.js"];
 async function scan(dir) {

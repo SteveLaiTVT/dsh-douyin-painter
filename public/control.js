@@ -1,3 +1,4 @@
+import { warningText } from "./control-model.js";
 const $ = (id) => document.getElementById(id);
 let session = null,
   state = null,
@@ -334,12 +335,7 @@ async function poll() {
       null,
       2,
     );
-    $("warning").textContent =
-      state.error ||
-      state.stage.warning ||
-      (state.budget.stopped
-        ? state.budget.reason
-        : "控制连接正常；请核对实际观众画面");
+    $("warning").textContent = warningText(state);
     $("ranking").replaceChildren();
     if (state.ranking) {
       $("ranking").append(

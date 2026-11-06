@@ -67,6 +67,9 @@ for (const fault of [
 test("AC-45/46: no explicit limit or no conservative evidence disables every paid channel", async () => {
   assert.equal(typeof B.Budget, "function");
   const j = await J.Journal.open(await root(), "show");
+  await j.commit("budget-test-round", [
+    { table: "rounds", id: K.round_id, value: { K } },
+  ]);
   const b = new B.Budget(j);
   for (const limit of [undefined, "", 0, -1, "NaN"]) {
     await b.configure(limit);
@@ -81,6 +84,9 @@ test("AC-47/48/49: atomic money boundary, unknown cost retained through restart 
   assert.equal(typeof B.Budget, "function");
   const dir = await root();
   const j = await J.Journal.open(dir, "show");
+  await j.commit("budget-test-round", [
+    { table: "rounds", id: K.round_id, value: { K } },
+  ]);
   const b = new B.Budget(j);
   await b.configure(5);
   const make = (phase, bound) =>
@@ -145,6 +151,9 @@ test("AC-20/48/66: deleted journal with surviving budget cannot become a fresh p
   const { unlink } = await import("node:fs/promises");
   const dir = await root();
   const j = await J.Journal.open(dir, "show");
+  await j.commit("budget-test-round", [
+    { table: "rounds", id: K.round_id, value: { K } },
+  ]);
   const b = new B.Budget(j);
   await b.configure(5);
   await b.reserve({

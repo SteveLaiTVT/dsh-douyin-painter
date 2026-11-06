@@ -1,1 +1,1 @@
-export {name,inject,apply} from './lib/plugin.js';
+export { name, inject, apply } from "./lib/plugin.js";

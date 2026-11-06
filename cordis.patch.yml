@@ -1,4 +1,5 @@
-# Loader reads inject here; direct ctx.plugin consumers use the module export too.
-- name: dsh-douyin-painter
-  inject: [agents, sessions, sessionPersistence]
-  apply: dsh-douyin-painter
+# DSH bundle patch operations insert loader rows; inject must be declared here too.
+- insert:
+    - id: dsh-douyin-painter
+      name: dsh-douyin-painter
+      inject: [agents, sessions, sessionPersistence]

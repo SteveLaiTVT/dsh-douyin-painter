@@ -131,10 +131,12 @@ test("AC-34/35/36/37: still before GIF, exact Images parameters, full assets rem
   assert.equal(f.budget.summary().reserved, 0.4);
 });
 test("AC-16/23/38/48: cancelled request still receives late safety/usage and keeps reservation", async () => {
-  let resume;
+  let resume, started;
+  const didStart = new Promise((r) => (started = r));
   const gate = new Promise((r) => (resume = r));
   const f = await fixture({
     async *stream() {
+      started();
       await gate;
       const e = Error("blocked");
       e.code = "moderation_blocked";
@@ -142,7 +144,7 @@ test("AC-16/23/38/48: cancelled request still receives late safety/usage and kee
     },
   });
   const p = f.images.generate(f.K, "still");
-  while (f.budget.summary().requests === 0) await new Promise(setImmediate);
+  await didStart;
   await f.images.cancel(f.K);
   await f.rounds.cancel();
   resume();
