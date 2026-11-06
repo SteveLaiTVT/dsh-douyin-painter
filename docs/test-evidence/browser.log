@@ -1,0 +1,22 @@
+
+> dsh-douyin-painter@1.0.0 test:browser
+> node --test --test-isolation=none tests/browser/*.test.js
+
+✖ AC-50/51/56 browser: built-in safety screen and AI badge, no raw HTML execution (1.192851ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.284079
+
+✖ failing tests:
+
+test at tests/browser/stage.test.js:4:1
+✖ AC-50/51/56 browser: built-in safety screen and AI badge, no raw HTML execution (1.192851ms)
+  Error: Browser verification unavailable: playwright and Chromium must be installed; this is not a pass
+      at TestContext.<anonymous> (file:///root/projects/dsh-douyin-painter/tests/browser/stage.test.js:9:11)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)

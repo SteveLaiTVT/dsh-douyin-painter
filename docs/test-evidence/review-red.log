@@ -1,0 +1,113 @@
+✖ AC-14/15/55: cancelled or paused collection cannot be reopened by timer or late review (149.13387ms)
+✖ AC-09: model decisions reversed near pool capacity still adopt earliest ingress in one batch (2700.367906ms)
+✖ AC-14/25/34: committed approval returning late cannot move a newer round to GIF (274.293156ms)
+✖ AC-55: GIF recovery authorizes the restored still URL and later ticks cannot replay the old GIF (293.148534ms)
+✖ AC-54: safety cut-source instruction survives simultaneous task/budget errors (0.338897ms)
+✔ AC-39: realistic multi-MiB base64 file decodes without regular-expression stack overflow (47.009201ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3540.525671
+
+✖ failing tests:
+
+test at tests/AC-review-regressions.test.js:6:1
+✖ AC-14/15/55: cancelled or paused collection cannot be reopened by timer or late review (149.13387ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'empty'
+  - 'cancelled'
+  
+      at TestContext.<anonymous> (file:///root/projects/dsh-douyin-painter/tests/AC-review-regressions.test.js:6:306)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'empty',
+    expected: 'cancelled',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/AC-review-regressions.test.js:7:1
+✖ AC-09: model decisions reversed near pool capacity still adopt earliest ingress in one batch (2700.367906ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '03a07a3f-ae06-4bee-bcc6-b005d076de7d'
+  - '7137a3e7-9d17-4950-aca9-d64d3a7af636'
+  
+      at TestContext.<anonymous> (file:///root/projects/dsh-douyin-painter/tests/AC-review-regressions.test.js:8:624)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '03a07a3f-ae06-4bee-bcc6-b005d076de7d',
+    expected: '7137a3e7-9d17-4950-aca9-d64d3a7af636',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/AC-review-regressions.test.js:9:1
+✖ AC-14/25/34: committed approval returning late cannot move a newer round to GIF (274.293156ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///root/projects/dsh-douyin-painter/tests/AC-review-regressions.test.js:9:781)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/AC-review-regressions.test.js:10:1
+✖ AC-55: GIF recovery authorizes the restored still URL and later ticks cannot replay the old GIF (293.148534ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '3fb702b6-fcae-43d4-9fba-c8e4a9f68f51'
+  - 'bc8fa29c-2fa7-40ee-bfb9-9f159c4818ed'
+  
+      at TestContext.<anonymous> (file:///root/projects/dsh-douyin-painter/tests/AC-review-regressions.test.js:10:1060)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '3fb702b6-fcae-43d4-9fba-c8e4a9f68f51',
+    expected: 'bc8fa29c-2fa7-40ee-bfb9-9f159c4818ed',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/AC-review-regressions.test.js:12:1
+✖ AC-54: safety cut-source instruction survives simultaneous task/budget errors (0.338897ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///root/projects/dsh-douyin-painter/tests/AC-review-regressions.test.js:12:98)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

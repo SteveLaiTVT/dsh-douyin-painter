@@ -1,0 +1,67 @@
+
+> dsh-douyin-painter@1.0.0 test
+> node --test --test-isolation=none tests/AC-*.test.js
+
+✔ AC-01/02: exclusive modes, local timestamp, source-scoped stable IDs and fallback window (3.293646ms)
+✔ AC-03: bounded raw buffer, offline stays connected and capped jittered backoff (2.221813ms)
+✔ AC-01/10/13/16/17/24/26/34/37/45/48/55/64 integration: manual submission to full ranking/still/GIF, then late safety revokes and shutdown closes (1181.188791ms)
+✔ AC-55/64: clean restart preserves an effective still candidate but never auto resumes or replays paid work (2181.023387ms)
+✔ AC-04: grapheme format edges, cooldown, three attempts and first qualified lock (242.261239ms)
+✔ AC-05/06/07: T1-1 belongs to original; T1 equality rejects; source_time cannot backdate (126.739495ms)
+✔ AC-08: review at 60000 cannot enter and frozen pool stays unchanged (120.627465ms)
+✔ AC-08: review at 60001 cannot enter and frozen pool stays unchanged (115.075146ms)
+✔ AC-09/10: 60 admissions total, batches of 10, deterministic capacity, immutable canonical freeze (1668.815971ms)
+✔ AC-11/12: empty no ranking; pause never reopens, controlled phase clocks never autoapprove (76.20544ms)
+✔ AC-14/15/16: request identity and duplicate attempt gates, cancelled round cannot adopt late ordinary result (110.49859ms)
+✔ AC-21/22: no auto approval; nickname alias, exact text hash and rewrite invalidation (90.787359ms)
+✔ AC-24/25/44: partial and final approvals independent, wrong hash/actor/K rejected, byte replacement denied (91.302546ms)
+✔ AC-16/17/19/23/26: late unknown-stage block revokes every generation and derivative; explicit input-only can end neutral (125.9869ms)
+✔ AC-13/20/63: durable state replays and missing safety index fails closed (100.680099ms)
+✔ AC-66: barrier:intent:write then crash cannot revive old valid bytes (137.745495ms)
+✔ AC-66: barrier:intent:fsync then crash cannot revive old valid bytes (156.09005ms)
+✔ AC-66: event:revoked:write then crash cannot revive old valid bytes (156.828469ms)
+✔ AC-66: index:revocations:write then crash cannot revive old valid bytes (116.81783ms)
+✔ AC-66: barrier:close:fsync then crash cannot revive old valid bytes (164.988014ms)
+✔ AC-45/46: no explicit limit or no conservative evidence disables every paid channel (129.518534ms)
+✔ AC-47/48/49: atomic money boundary, unknown cost retained through restart and overrun stops (165.836156ms)
+✔ AC-58/59/60/61: exact origins, one-time exchange, cookie+token+CSRF and restart invalidation (1.164077ms)
+✔ AC-20/48/66: deleted journal with surviving budget cannot become a fresh paid show (109.201384ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (48.466982ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (43.993299ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (47.905678ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (48.617835ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (57.044902ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (50.93129ms)
+✔ AC-27: malformed or incomplete full-candidate scores never publish (46.753424ms)
+✔ AC-28/29/30/31/32/33: recompute scores, manual version audit, separate text approval and lock after reveal (147.433853ms)
+✔ AC-30: all attempts and manual confirmation share exact 10-second deadline (47.344654ms)
+✔ AC-34/35/36/37: still before GIF, exact Images parameters, full assets remain unapproved until exact human action (720.206656ms)
+✔ AC-16/23/38/48: cancelled request still receives late safety/usage and keeps reservation (177.522426ms)
+✔ AC-39/40/44: actual PNG bytes, CRC, fixed size/APNG and transport size rejected (250.110532ms)
+✔ AC-26/41/42/43: complete GIF frames/time and full-frame contact sheet from exact bytes (199.982761ms)
+✔ AC-43: independent worker deadline and memory/pixel bounds fail closed (42.969075ms)
+✔ AC-35/37/39: Images SSE exact fields, partials do not complete stream; oversized/duplicate streams denied (4.085624ms)
+✔ AC-18/51/52/53/55: stage starts safe, heartbeat cannot resume, stale instance/rev cannot renew and commands apply before ack (0.291798ms)
+✔ AC-51: disconnect clears synchronously and delayed asset callback cannot resurrect old pixels (0.155211ms)
+✔ AC-53/54/55: publisher accepts only exact timely receipts; missing receipt warns after one second (0.413427ms)
+✔ AC-57: actual verifier report records signature issues and signer separately from trust or SynthID claims (0.386726ms)
+✔ AC-50/58–61: real request handler refuses wrong sources, missing CSRF, Cookie-only access and GET writes (2.82173ms)
+✔ AC-22/62/64: enqueue receipt is not answer; settle owned committed interval only, dispose only owned handle (1.154048ms)
+✔ AC-22/45/62: host setup hides tools, monotonic guard returns a denial and output token cap is applied (0.396905ms)
+✔ AC-14/15/55: cancelled or paused collection cannot be reopened by timer or late review (105.229414ms)
+✔ AC-09: model decisions reversed near pool capacity still adopt earliest ingress in one batch (3469.012483ms)
+✔ AC-14/25/34: committed approval returning late cannot move a newer round to GIF (1279.010972ms)
+✔ AC-55: GIF recovery authorizes the restored still URL and later ticks cannot replay the old GIF (357.746236ms)
+✔ AC-54: safety cut-source instruction survives simultaneous task/budget errors (0.287511ms)
+✔ AC-39: realistic multi-MiB base64 file decodes without regular-expression stack overflow (45.038763ms)
+✔ AC-15/45/48: reservation cannot be sent after its ordinary generation was cancelled (1232.870561ms)
+✔ AC-47: a positive sub-microdollar conservative bound never rounds down to a free reservation (1142.411859ms)
+✔ AC-49: explicitly disabling budget cancels already scheduled local paid work (1145.674096ms)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 55
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18179.855659
