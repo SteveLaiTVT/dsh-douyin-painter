@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "ok": false,
+  "command": "finalize",
+  "status": "fail",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.architecture.json",
+    "sha256": "4e952294f59859f841b7d676e8f395565eab2c1fa2e779a544ebbc3c33bd35d7",
+    "bytes": 6647
+  },
+  "artifact": {
+    "path": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.html",
+    "sha256": "a20e39a74833716216943da981eb68a86cd9a7a75d90382069893db921af5796",
+    "bytes": 871699
+  },
+  "gates": {
+    "validate": "not-run",
+    "deliver": "fail",
+    "check": "not-run",
+    "browser-check": "not-run"
+  },
+  "failedStage": "deliver",
+  "diagnostics": [
+    {
+      "code": "finalize/stage-failure",
+      "severity": "error",
+      "message": "The deliver stage did not complete successfully.",
+      "subject": {
+        "stage": "deliver"
+      },
+      "evidence": {
+        "exitCode": 1,
+        "reason": "Command failed: /usr/bin/node /root/.agents/skills/archify/bin/archify.mjs deliver architecture /root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.architecture.json /root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.html --quality showcase --json\n"
+      },
+      "supportedFixes": [
+        "use the compact finalize summary to repair the named subject in place, then rerun finalize once"
+      ]
+    }
+  ],
+  "diagnosticSummary": {
+    "total": 1,
+    "shown": 1,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.finalize.json",
+    "summaryReceipt": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.finalize-summary.json"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 1482,
+  "browserCheck": {
+    "requested": true,
+    "ran": false
+  }
+}

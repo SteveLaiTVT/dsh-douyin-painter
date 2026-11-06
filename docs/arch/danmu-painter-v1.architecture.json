@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "弹幕画师 · 首播架构 v1（设计，尚未实现）",
+    "locale": "zh-CN",
+    "output": "docs/arch/danmu-painter-v1.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {"id":"audience","type":"external","label":"直播间观众","sublabel":"画：一条短提示词","pos":[40,40],"size":[170,70]},
+    {"id":"future-official","type":"external","label":"官方通道 · 后续","sublabel":"签名回调 / 能力待核实","tag":"今晚不启用","pos":[660,40],"size":[190,76]},
+    {"id":"douyinlive","type":"backend","label":"douyinLive 进程","sublabel":"127.0.0.1:1088","pos":[40,230],"size":[170,76]},
+    {"id":"transport","type":"backend","label":"M1 接入适配","sublabel":"WS 主通道 · 可替换","pos":[320,230],"size":[190,76]},
+    {"id":"manual","type":"frontend","label":"主播手动代录","sublabel":"同样审核 · 标为代录","pos":[40,450],"size":[170,76]},
+    {"id":"rounds","type":"messagebus","label":"M2 投稿与轮次","sublabel":"待审 ≤60 · 入池 ≤30","pos":[320,450],"size":[190,76]},
+    {"id":"review","type":"security","label":"M3 / M4 过滤评审","sublabel":"词表 → 串行 DSH 会话","pos":[660,450],"size":[190,76]},
+    {"id":"text-model","type":"cloud","label":"宿主文本模型","sublabel":"配置与可用性待彩排","pos":[1000,450],"size":[180,76]},
+    {"id":"files","type":"database","label":"Mac 本地文件","sublabel":"showRoot / 日志与素材","pos":[40,710],"size":[170,76]},
+    {"id":"state","type":"backend","label":"M2 / M7 状态与落盘","sublabel":"单写入者 · 写盘后发布","pos":[320,710],"size":[190,76]},
+    {"id":"image-jobs","type":"messagebus","label":"M5 出图任务队列","sublabel":"静图 → GIF · 并发 1","pos":[660,710],"size":[190,76]},
+    {"id":"openai","type":"cloud","label":"OpenAI GPT-Image-2.6","sublabel":"Images API · auto 审核","pos":[1000,710],"size":[180,76]},
+    {"id":"visual-review","type":"security","label":"M3 画面发布闸门","sublabel":"partial 逐张 · GIF 逐帧","pos":[660,990],"size":[190,76]},
+    {"id":"publisher","type":"backend","label":"M6 上屏投影","sublabel":"仅发布已审文字与素材","pos":[320,990],"size":[190,76]},
+    {"id":"stage","type":"frontend","label":"上屏专用浏览器窗口","sublabel":"AI 生成内容 · 常驻角标","pos":[320,1230],"size":[190,76]},
+    {"id":"capture","type":"frontend","label":"Mac 直播伴侣 → 推流","sublabel":"仅采集上屏窗口 · 待彩排","pos":[40,1230],"size":[170,76]}
+  ],
+  "boundaries": [
+    {"kind":"region","label":"主播 Mac（进程、浏览器与文件；运行能力待彩排）","wraps":["douyinlive","manual","transport","rounds","review","files","state","image-jobs","visual-review","publisher","stage","capture"],"pad":32},
+    {"kind":"region","label":"DSH 进程内 external protocol driver · M7 管生命周期","wraps":["transport","rounds","review","state","image-jobs","visual-review","publisher"],"pad":22}
+  ],
+  "connections": [
+    {"id":"comment-source","from":"audience","to":"douyinlive","label":"弹幕","variant":"emphasis"},
+    {"id":"websocket","from":"douyinlive","to":"transport","label":"本地 WS","variant":"emphasis"},
+    {"id":"future-transport","from":"future-official","to":"transport","label":"未来替换","variant":"dashed"},
+    {"id":"normalize","from":"transport","to":"rounds","label":"归一去重","variant":"emphasis"},
+    {"id":"manual-ingest","from":"manual","to":"rounds","label":"代录同审"},
+    {"id":"text-review","from":"rounds","to":"review","label":"先审再评","variant":"security"},
+    {"id":"dsh-prompt","from":"review","to":"text-model","label":"会话请求"},
+    {"id":"dsh-committed","from":"text-model","to":"review","label":"提交结果"},
+    {"id":"leaderboard-commit","from":"review","to":"state","label":"已审榜单","variant":"security"},
+    {"id":"winner-job","from":"review","to":"image-jobs","label":"合格赢家","variant":"emphasis"},
+    {"id":"disk","from":"state","to":"files","label":"状态落盘"},
+    {"id":"image-request","from":"image-jobs","to":"openai","label":"HTTPS","variant":"emphasis"},
+    {"id":"image-result","from":"openai","to":"image-jobs","label":"图像结果"},
+    {"id":"quarantine","from":"image-jobs","to":"visual-review","label":"待审产物","variant":"security"},
+    {"id":"asset-commit","from":"visual-review","to":"state","label":"通过才提交","variant":"security"},
+    {"id":"durable-publication","from":"state","to":"publisher","label":"已审且落盘","variant":"security"},
+    {"id":"stage-state","from":"publisher","to":"stage","label":"榜单与画面","variant":"emphasis"},
+    {"id":"window-capture","from":"stage","to":"capture","label":"窗口采集","variant":"emphasis"}
+  ],
+  "cards": [
+    {"dot":"cyan","title":"观众节奏 · M4 与 M5 并重","items":["揭晓前三与一句理由 → 静图过程 → 原生 GIF 收尾。","已审榜单先提交上屏，不等待 OpenAI；只有发布者能向舞台输出。","静图 partial 是真实中间结果；笔刷演绎明确标注，不冒充模型笔触。"]},
+    {"dot":"rose","title":"先审后播 · 主播操作属于控制面","items":["原文、昵称、理由、绘画提示均先审；原文不直通舞台。","每张 partial、最终静图和 GIF 全帧在未采集控制窗审核；未通过不提交。","GIF 不支持流式或 partial；moderation_blocked 不自动重试或调低审核。"]},
+    {"dot":"emerald","title":"队列、文件与恢复 · 设计值非实测","items":["M2：待审队列 ≤60、合格池 ≤30；宿主文本任务串行。M5：一轮赢家，出图并发 1。","showRoot = ~/Library/Application Support/dsh-douyin-painter/shows/<show_id>/。","events.jsonl、state.json、榜单与审核记录；artifacts/ 分隔待审、通过与原始产物。","DSH sessionPersistence 另存宿主既有目录，路径与原文留存行为待核实；不是应用日志的替代。"]},
+    {"dot":"amber","title":"证据与边界 · v1 设计图","items":["依据 RESEARCH §1–§4、§6 及 2026-11-06 用户裁定；不表示已经实现或跑通。","WS：ws://127.0.0.1:1088/ws/<房间标识>。手动代录进入同一审核入口。","宿主入口 name/inject/apply、双写 inject；bridge create/followup/cancel/session-event。","静图 / GIF 权限已由账号持有人实测；具体 model × endpoint × 参数仍须记录。","官方通道只留 transport 接口；Mac 宿主、窗口采集、GIF 像素预算与标识认可口径仍有缺口。"]}
+  ]
+}

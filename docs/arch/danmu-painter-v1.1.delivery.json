@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "5a53f768-278c-4b7f-86ae-e113b452aafd",
+  "status": "failed",
+  "command": "deliver",
+  "stage": "render",
+  "input": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.1.architecture.json",
+  "output": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.1.html",
+  "artifact": {
+    "sha256": "660dc1b961ca2b4e98d478797bf001f4f2ca90d5c215015682df25196b8b61d5",
+    "bytes": 882620
+  },
+  "error": "Renderer process could not start."
+}

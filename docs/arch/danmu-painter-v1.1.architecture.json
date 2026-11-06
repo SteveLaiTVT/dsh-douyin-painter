@@ -1,0 +1,511 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "弹幕画师 · 首播架构 v1.1（设计，尚未实现）",
+    "locale": "zh-CN",
+    "output": "docs/arch/danmu-painter-v1.1.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "audience",
+      "type": "external",
+      "label": "直播间观众",
+      "sublabel": "画：一条短提示词",
+      "pos": [
+        40,
+        40
+      ],
+      "size": [
+        170,
+        70
+      ]
+    },
+    {
+      "id": "future-official",
+      "type": "external",
+      "label": "官方通道 · 后续",
+      "sublabel": "签名回调 / 能力待核实",
+      "tag": "今晚不启用",
+      "pos": [
+        660,
+        40
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "douyinlive",
+      "type": "backend",
+      "label": "douyinLive 进程",
+      "sublabel": "127.0.0.1:1088",
+      "pos": [
+        40,
+        230
+      ],
+      "size": [
+        170,
+        76
+      ]
+    },
+    {
+      "id": "transport",
+      "type": "backend",
+      "label": "M1 接入适配",
+      "sublabel": "WS 主通道 · 可替换",
+      "pos": [
+        320,
+        230
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "manual",
+      "type": "frontend",
+      "label": "主播手动代录",
+      "sublabel": "同样审核 · 标为代录",
+      "pos": [
+        40,
+        450
+      ],
+      "size": [
+        170,
+        76
+      ]
+    },
+    {
+      "id": "rounds",
+      "type": "messagebus",
+      "label": "M2 投稿与轮次",
+      "sublabel": "T1 收词截止 · T2 冻结",
+      "pos": [
+        320,
+        450
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "review",
+      "type": "security",
+      "label": "M3 / M4 过滤评审",
+      "sublabel": "词表 → 串行 DSH 会话",
+      "pos": [
+        660,
+        450
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "text-model",
+      "type": "cloud",
+      "label": "宿主文本模型",
+      "sublabel": "配置与可用性待彩排",
+      "pos": [
+        1000,
+        450
+      ],
+      "size": [
+        180,
+        76
+      ]
+    },
+    {
+      "id": "files",
+      "type": "database",
+      "label": "Mac 本地文件",
+      "sublabel": "showRoot / 日志与素材",
+      "pos": [
+        40,
+        710
+      ],
+      "size": [
+        170,
+        76
+      ]
+    },
+    {
+      "id": "state",
+      "type": "backend",
+      "label": "M2 / M7 状态与落盘",
+      "sublabel": "单写入 · 轮次撤销不可逆",
+      "pos": [
+        320,
+        710
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "image-jobs",
+      "type": "messagebus",
+      "label": "M5 出图任务队列",
+      "sublabel": "并发 1 · 单场预算闸门",
+      "pos": [
+        660,
+        710
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "openai",
+      "type": "cloud",
+      "label": "OpenAI GPT-Image-2.6",
+      "sublabel": "Images API · auto 审核",
+      "pos": [
+        1000,
+        710
+      ],
+      "size": [
+        180,
+        76
+      ]
+    },
+    {
+      "id": "visual-review",
+      "type": "security",
+      "label": "M3 / M7 审核与控制闸门",
+      "sublabel": "哈希审批 · 本地权限校验",
+      "pos": [
+        660,
+        990
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "id": "publisher",
+      "type": "backend",
+      "label": "M6 上屏投影",
+      "sublabel": "仅发布已审文字与素材",
+      "pos": [
+        320,
+        990
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "stage",
+      "type": "frontend",
+      "label": "M6 只读舞台窗口",
+      "sublabel": "1s 心跳 · 3s 超时清屏",
+      "pos": [
+        320,
+        1230
+      ],
+      "size": [
+        190,
+        76
+      ]
+    },
+    {
+      "id": "capture",
+      "type": "frontend",
+      "label": "Mac 直播伴侣 → 推流",
+      "sublabel": "仅采集上屏窗口 · 待彩排",
+      "pos": [
+        40,
+        1230
+      ],
+      "size": [
+        170,
+        76
+      ]
+    },
+    {
+      "id": "control",
+      "type": "frontend",
+      "label": "操作员控制窗",
+      "sublabel": "独立令牌 · 不在采集范围",
+      "pos": [
+        660,
+        1230
+      ],
+      "size": [
+        210,
+        76
+      ]
+    },
+    {
+      "id": "local-safe",
+      "type": "frontend",
+      "label": "舞台本地安全画面",
+      "sublabel": "断连清屏 · 重连待人工确认",
+      "pos": [
+        320,
+        1450
+      ],
+      "size": [
+        210,
+        76
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "主播 Mac（进程、浏览器与文件；运行能力待彩排）",
+      "wraps": [
+        "douyinlive",
+        "manual",
+        "transport",
+        "rounds",
+        "review",
+        "files",
+        "state",
+        "image-jobs",
+        "visual-review",
+        "publisher",
+        "stage",
+        "capture",
+        "control",
+        "local-safe"
+      ],
+      "pad": 32
+    },
+    {
+      "kind": "region",
+      "label": "DSH 进程内 external protocol driver · M7 管生命周期",
+      "wraps": [
+        "transport",
+        "rounds",
+        "review",
+        "state",
+        "image-jobs",
+        "visual-review",
+        "publisher"
+      ],
+      "pad": 22
+    },
+    {
+      "kind": "region",
+      "label": "舞台浏览器 · 内置安全画面与看门狗",
+      "wraps": [
+        "stage",
+        "local-safe"
+      ],
+      "pad": 20
+    }
+  ],
+  "connections": [
+    {
+      "id": "comment-source",
+      "from": "audience",
+      "to": "douyinlive",
+      "label": "弹幕",
+      "variant": "emphasis"
+    },
+    {
+      "id": "websocket",
+      "from": "douyinlive",
+      "to": "transport",
+      "label": "本地 WS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "future-transport",
+      "from": "future-official",
+      "to": "transport",
+      "label": "未来替换",
+      "variant": "dashed"
+    },
+    {
+      "id": "normalize",
+      "from": "transport",
+      "to": "rounds",
+      "label": "归一去重",
+      "variant": "emphasis"
+    },
+    {
+      "id": "manual-ingest",
+      "from": "manual",
+      "to": "rounds",
+      "label": "代录同审"
+    },
+    {
+      "id": "text-review",
+      "from": "rounds",
+      "to": "review",
+      "label": "先审再评",
+      "variant": "security"
+    },
+    {
+      "id": "dsh-prompt",
+      "from": "review",
+      "to": "text-model",
+      "label": "会话请求"
+    },
+    {
+      "id": "dsh-committed",
+      "from": "text-model",
+      "to": "review",
+      "label": "提交结果"
+    },
+    {
+      "id": "leaderboard-commit",
+      "from": "review",
+      "to": "state",
+      "label": "已审榜单",
+      "variant": "security"
+    },
+    {
+      "id": "winner-job",
+      "from": "state",
+      "to": "image-jobs",
+      "label": "已落盘赢家",
+      "variant": "emphasis"
+    },
+    {
+      "id": "disk",
+      "from": "state",
+      "to": "files",
+      "label": "状态落盘"
+    },
+    {
+      "id": "image-request",
+      "from": "image-jobs",
+      "to": "openai",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "image-result",
+      "from": "openai",
+      "to": "image-jobs",
+      "label": "图像结果"
+    },
+    {
+      "id": "quarantine",
+      "from": "image-jobs",
+      "to": "visual-review",
+      "label": "检查后待审",
+      "variant": "security"
+    },
+    {
+      "id": "asset-commit",
+      "from": "visual-review",
+      "to": "state",
+      "label": "审批/控制/撤销",
+      "variant": "security"
+    },
+    {
+      "id": "durable-publication",
+      "from": "state",
+      "to": "publisher",
+      "label": "已审且落盘",
+      "variant": "security"
+    },
+    {
+      "id": "stage-state",
+      "from": "publisher",
+      "to": "stage",
+      "label": "投影/心跳/撤播",
+      "variant": "emphasis"
+    },
+    {
+      "id": "window-capture",
+      "from": "stage",
+      "to": "capture",
+      "label": "窗口采集",
+      "variant": "emphasis"
+    },
+    {
+      "id": "safety-revoke",
+      "from": "image-jobs",
+      "to": "state",
+      "label": "迟到拦截撤销",
+      "variant": "security"
+    },
+    {
+      "id": "control-actions",
+      "from": "control",
+      "to": "visual-review",
+      "label": "鉴权审批/控制",
+      "variant": "security"
+    },
+    {
+      "id": "stage-ack",
+      "from": "stage",
+      "to": "publisher",
+      "label": "心跳/遮罩回执",
+      "variant": "security"
+    },
+    {
+      "id": "missing-ack-alert",
+      "from": "publisher",
+      "to": "control",
+      "label": "未确认需断采集",
+      "variant": "security"
+    },
+    {
+      "id": "local-disconnect-safe",
+      "from": "stage",
+      "to": "local-safe",
+      "label": "断连/超时切换",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "T1 / T2 与榜单 · M2 / M4",
+      "items": [
+        "T1 停止接收新投稿，已有待审最多再收尾 15 秒；T2 冻结合格候选清单及哈希。",
+        "全部候选的 0–5 整数维度分由程序校验；按 40/35/25 权重复算并排序，人工与模型给分均可对账。",
+        "榜单先落盘发布；静图真实 partial 与笔刷演绎区分，GIF 全帧获批后才播。"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "控制与舞台 · 设计补缺，未认定已发现漏洞",
+      "items": [
+        "仅本机回环；控制端一次性令牌换会话，Host/Origin 精确校验，写操作具备基础 CSRF 防护。",
+        "舞台无控制权限，只有白名单投影、心跳与确认回执；审批绑定 show_id / round_id / generation / 素材 SHA-256。",
+        "遮罩/撤播须 1 秒内取得本次舞台回执；无法确认时提示操作员立即切断直播伴侣采集源。",
+        "本地安全画面无需网络；断连立即清除当前内容，静默断连最迟 3 秒切入。重连先保持安全，操作员确认才恢复未撤销快照。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "普通迟到与安全撤销 · 两条独立通道",
+      "items": [
+        "普通迟到产物不采用、不展示；安全撤销按不可变请求映射 K=(show_id, round_id, generation) 处理，不被代次失效过滤。",
+        "迟到输出审核拦截永久撤销对应轮全部代次的素材和衍生物；禁恢复、禁重播，普通失败回退不能覆盖。",
+        "旧轮撤销只清旧轮引用与缓存，不遮新轮；当前轮命中则立即安全画面并取得回执。",
+        "状态与撤销记录先落盘再发布；showRoot 位于 Mac 应用数据目录，宿主 sessionPersistence 路径另核实。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "M5 / M7 文件与付费闸门 · v1.1 设计值非实测",
+      "items": [
+        "实际 PNG/GIF 检查字节大小、尺寸、实际帧数与可解码性；限解码像素、内存、时间，不能只信请求参数。",
+        "单场预算上限必须显式配置；建议 5 美元/场，缺省禁用本项目付费调用。每轮最多 3 次、首播 3 轮最多 9 次图像请求。",
+        "每次调用前核对已结算费用、在途保留额和新请求保留额；未知费用不记 0，超限即停并提示操作员。",
+        "约 0.025 美元/图仅为 Liu 指定的规划估算，不是实时定价或单次硬上界。",
+        "依据 2026-11-06 dot review 与 Liu 全采纳裁定；七模块方向不变，权限已实测但具体路径与目标 Mac 仍须彩排。"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "command": "deliver",
+  "status": "pending",
+  "receiptId": "5a53f768-278c-4b7f-86ae-e113b452aafd",
+  "input": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.1.architecture.json",
+  "output": "/root/projects/dsh-douyin-painter/docs/arch/danmu-painter-v1.1.html"
+}
