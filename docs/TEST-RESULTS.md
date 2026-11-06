@@ -28,3 +28,4 @@ Git原始`.git`只读；实际实现提交位于`/tmp/dsh-painter-v1-git/.git`�
 - 全部真实OpenAI调用、douyinLive实连、DSH实跑、C2PA签名验证样本和伴侣采集均未执行。
 
 原始最终输出保留在 `docs/test-evidence/`；network/browser是明确失败日志，review-red保留修正前的真实复现，offline为最终成功输出。
+- 最终 `cnb pulls post-pull` 已实际执行，返回API ConnectionRefused，没有PR链接；原始输出见 `test-evidence/pr-attempt.log`。完整PR正文含66条逐条状态，已准备但不能写成创建成功。
