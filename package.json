@@ -1,0 +1,43 @@
+{
+  "name": "dsh-douyin-painter",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs",
+    "dev": "node --watch scripts/start.mjs",
+    "test": "node --test tests/*.test.js",
+    "check": "node scripts/check.mjs",
+    "setup:capture": "node scripts/setup-capture.mjs",
+    "test:browser": "node --test tests/browser.test.mjs tests/workflow-browser.test.mjs tests/streaming-browser.test.mjs tests/avatar-browser.test.mjs tests/theme-planner-browser.test.mjs",
+    "setup:references": "node scripts/setup-references.mjs"
+  },
+  "exports": {
+    ".": "./src/plugin.js",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  },
+  "description": "本机每日主题绘画大赛：弹幕、DeepSeek互动、GPT Image与MiniMax语音",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-llm": "*"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-llm": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@livliv-dev/player": "0.3.0",
+    "omggif": "1.0.10"
+  }
+}

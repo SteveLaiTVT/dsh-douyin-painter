@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>每日主题大赛 · 直播荧幕台</title><link rel="stylesheet" href="/app.css"></head>
+<body class="stage-page"><main class="stage-layout" data-screen="collecting">
+  <header class="stage-header"><span class="stage-live-badge" id="stage-live-badge">待机</span><div class="stage-brand">每日主题大赛 <span>/</span> <small id="stage-date"></small></div><span class="stage-ai">AI 生成内容</span></header>
+  <nav class="stage-phase-track" aria-label="比赛阶段"><span data-stage-step="collecting"></span><span data-stage-step="evaluating"></span><span data-stage-step="generating"></span><span data-stage-step="revealed"></span></nav>
+  <section class="stage-content">
+    <div class="stage-theme"><p class="stage-mode-label" id="stage-mode-label">01 征集 · 短画面提示词竞赛</p><h1 id="stage-title">今日命题</h1><h2 id="stage-screen-title" hidden></h2><p id="stage-rules">主题即将公布，准备好你的奇思妙想。</p></div>
+    <section class="stage-collect-panel" id="stage-collect-panel">
+      <div class="stage-counter"><div class="stage-counter-heading"><span id="stage-round">等待主播开场</span><span id="stage-received">本轮收到 0 条发言</span></div><div class="stage-counter-main"><strong id="stage-countdown">--:--</strong><p id="stage-question" hidden></p></div><progress id="stage-time-progress" max="100" value="100" hidden aria-label="本阶段剩余时间"></progress><span id="stage-phase" class="stage-counter-foot">设置主题后，由主播开始收词</span></div>
+      <div class="stage-section-heading" id="stage-feed-heading"><h2>实时创意 · 本场收到</h2><span id="stage-feed-note">观众的灵感，在这里汇合</span></div><div id="stage-live-comments" class="stage-live-comments"></div>
+    </section>
+    <section class="stage-evaluation-panel" id="stage-evaluation-panel" hidden><div id="stage-featured" class="stage-featured" hidden><div class="stage-featured-heading"><strong id="stage-featured-label">WINNER · 本轮获胜创意</strong><span id="stage-featured-votes"></span></div><h3 id="stage-featured-text"></h3><p id="stage-featured-reason"></p><div id="stage-featured-author"></div></div><p class="stage-evaluation-message" id="stage-evaluation-message"></p></section>
+    <section class="stage-host-panel" id="stage-host-panel" hidden><div><strong>主持接话</strong><span id="stage-host-name"></span></div><p id="stage-host-text"></p></section>
+    <section class="stage-ranking" id="stage-ranking"><div class="stage-section-heading"><h2 id="stage-candidate-heading">本轮候选 · 等待推荐</h2><span id="stage-ranking-note">每位观众最多一个入选名额</span></div><div class="stage-selections" id="stage-selections"></div><p class="stage-vote-label" id="stage-vote-label" hidden>本场收到的有效弹幕票</p></section>
+    <div class="stage-art" id="stage-art" hidden><div id="stage-generation" class="stage-generation" hidden><div class="stage-canvas-grid" aria-hidden="true"></div><span class="generation-spinner" aria-hidden="true"></span><strong id="stage-generation-title">正在生成 GIF 动图</strong><small id="stage-generation-help">正在把获胜创意变成动图，请稍候。</small><span class="stage-generating-rule" aria-hidden="true"></span></div><div id="stage-waiting" class="stage-waiting"><strong>等待今天的第一幅作品</strong></div><img id="stage-image" alt="本轮 AI 生成动图" hidden><div class="stage-art-credit" id="stage-art-credit" hidden></div></div>
+    <div class="stage-output-note" id="stage-output-note" hidden><strong id="stage-output-label">动图创作中</strong><span id="stage-output-status">完成后自动进入作品展示</span></div>
+  </section>
+  <aside class="stage-avatar" id="stage-avatar" aria-label="动画主持阿月" hidden><canvas id="host-canvas" aria-label="月球摊主阿月"></canvas><div class="host-bubble"><div class="host-identity"><strong>阿月</strong><span id="host-status">AI 值班店员</span></div><p id="host-caption">月球小摊营业中，等你一句奇思妙想。</p></div></aside>
+  <footer class="stage-bottom"><div class="stage-caption" id="stage-caption">观众出灵感，AI 来作画。</div><p id="stage-footnote">请在直播间弹幕中参与 · 主播掌握比赛节奏</p></footer>
+</main>
+<div class="stage-sound" id="stage-sound"><button class="button" id="enable-sound">♫ 启用舞台声音</button><button class="text-button" id="disable-sound" hidden>关闭声音</button><span id="sound-status">点击后允许播放朗读音频</span></div><div class="stage-offline" id="stage-offline" hidden>与本机服务断开，正在重连…</div><audio id="stage-audio" preload="none"></audio><script type="module" src="/stage.js"></script></body></html>

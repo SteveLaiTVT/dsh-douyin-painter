@@ -1,0 +1,12 @@
+node_modules/
+.env
+.env.local
+.data/
+capture/bin/
+.DS_Store
+data/
+
+.idea/
+assets/references/*.jpg
+assets/references/*.png
+assets/references/*.webp
