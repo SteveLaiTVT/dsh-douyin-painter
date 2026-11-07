@@ -6,6 +6,13 @@
   <main class="workspace">
     <div class="page-heading"><div><p class="eyebrow">YOUR AUDIENCE, YOUR INSPIRATION</p><h1>让观众的一句话，成为今天的作品。</h1><p class="muted">定一个主题，收集奇思妙想，让 AI 帮你选词、作画和接话。</p></div><span class="date-badge" id="today"></span></div>
     <div id="notice" class="notice" role="alert" hidden></div>
+    <details class="panel theme-planner" id="theme-planner" open>
+      <summary><span><span class="eyebrow">THEME STUDIO</span><strong>主题策划 · 先定世界，再等灵感</strong></span><span class="muted">三个方向 → 编辑 Review → 确认应用</span></summary>
+      <div class="theme-planner-content"><form id="theme-plan-form" class="theme-plan-form"><label for="plan-seed">今天想玩什么主题？<input id="plan-seed" maxlength="100" required placeholder="例如：月亮便利店、失眠动物园、时间修理铺"></label><label for="plan-notes">补充想法 <span class="optional">选填</span><textarea id="plan-notes" rows="2" maxlength="1500" placeholder="例如：露天月球路边摊，三个题材各有不同情绪，画面唯美但物品朴素。"></textarea></label><button type="submit" id="generate-theme-plan" class="button primary">生成三个策划方向</button></form>
+      <p id="theme-plan-status" class="muted">生成的是待审核草案，点击应用前不会改变直播主题。</p><div id="theme-plan-options" class="theme-plan-options" hidden></div>
+      <form id="theme-plan-review" hidden><div class="plan-review-heading"><h3>Review 这份方案</h3><span id="plan-review-state" class="badge"></span></div><div id="theme-plan-fields" class="theme-plan-fields"></div><h3 class="plan-storyboard-heading">故事板 · 整场叙事与单镜动作</h3><p class="muted">逐格修改画面、动作和主持词；每个商品 GIF 从中取一个合适的短镜头。</p><div id="theme-plan-storyboard" class="theme-plan-storyboard"></div><div class="plan-review-actions"><button id="save-theme-plan" type="submit" class="button subtle">保存草稿</button><button id="discard-theme-plan-edits" type="button" class="text-button" hidden>恢复已保存的草稿</button><button id="apply-theme-plan" type="button" class="button primary">确认并应用这份方案</button></div><p id="plan-apply-help" class="muted"></p></form>
+      </div>
+    </details>
     <section class="panel workflow-panel" aria-label="直播共创工作流">
       <div class="workflow-top"><div><p class="eyebrow">LIVE CO-CREATION</p><h2>今天的好点子，由大家一起决定。</h2><p class="muted">AI 接住创意、推荐候选，观众用弹幕投票；主播掌握每一步节奏。</p></div><div class="workflow-clock"><span id="workflow-phase">等待开场</span><strong id="workflow-countdown">—</strong></div></div>
       <ol class="workflow-steps" id="workflow-steps"><li data-phase="collecting">01 开场收词</li><li data-phase="selecting">02 推荐候选</li><li data-phase="voting">03 观众投票</li><li data-phase="generating">04 作画揭晓</li></ol>
@@ -21,7 +28,7 @@
     <div class="dashboard">
       <aside class="theme-column">
         <details class="panel theme-panel foldable-settings" open><summary>主题与单项控制</summary><div class="foldable-content"><div class="section-heading"><h2><span class="section-number">01</span>今日主题设置</h2><span id="round-status" class="badge">待开场</span></div>
-          <form id="theme-form"><label for="theme-title">给观众一个想象的起点</label><input id="theme-title" name="title" maxlength="100" placeholder="例如：如果月亮开了一家便利店" required><label for="theme-rules">玩法与规则 <span class="optional">选填</span></label><textarea id="theme-rules" name="rules" rows="4" maxlength="2000" placeholder="例如：用一句话描述店里最奇妙的商品。新奇、有画面感的创意更容易入选。"></textarea><button class="button primary full" id="save-theme" type="submit">设置今日主题</button></form>
+          <form id="theme-form"><label for="theme-title">给观众一个想象的起点</label><input id="theme-title" name="title" maxlength="100" placeholder="例如：如果月亮开了一家便利店" required><label for="theme-rules">玩法与规则 <span class="optional">选填</span></label><textarea id="theme-rules" name="rules" rows="4" maxlength="2000" placeholder="例如：用一句话描述店里最奇妙的商品。新奇、有画面感的创意更容易入选。"></textarea><button class="button primary full" id="save-theme" type="submit">直接应用主题与规则</button></form>
           <div class="round-controls"><button class="button accent" data-action="start" id="start-round">开始收词</button><button class="button" data-action="close-round" id="close-round">结束收词</button></div>
           <div class="round-guidance" id="round-guidance">先设置主题，再邀请观众发弹幕。</div>
           <div class="divider"></div><button class="button subtle full" data-action="explain" id="explain-button">✦ 让 AI 解说玩法</button><div id="explanation" hidden><p class="explanation-text" id="explanation-text"></p><button class="text-button" id="speak-explanation">朗读规则解说 →</button></div>

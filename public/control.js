@@ -1,3 +1,4 @@
+import {createThemePlanner} from './theme-planner.js';
 const $ = (id) => document.getElementById(id);
 const make = (tag, text, className) => {
   const element = document.createElement(tag);
@@ -13,6 +14,7 @@ let selectionSignature = '';
 let artworkSignature = '';
 let speechSignature = '';
 const pending = new Set();
+const planner = createThemePlanner({dispatch,busy:(action)=>taskBusy(action)});
 const roundLabels = { idle: '待开场', collecting: '正在收词', closed: '收词结束' };
 const textOf = (value) => typeof value === 'string' ? value : value?.text || '';
 const taskBusy = (action, id) => pending.has(action) || pending.has(`${action}:${id}`) || (state?.busy || []).some((key) => key === action || key === `${action}:${id}`);
@@ -51,8 +53,11 @@ async function dispatch(input) {
       if (input.action === 'room') notify('直播间设置已保存，需要时再点击连接。', false);
     }
     if (input.action === 'manual') $('manual-text').value = '';
+    if (input.action === 'theme-plan-apply') { themeDirty=false; notify('策划已应用，主持与生图将使用这份方案。',false); }
+    return true;
   } catch (error) {
     notify(error.message || '无法连接本机服务，请确认应用仍在运行。');
+    return false;
   } finally {
     pending.delete(key);
     // Buttons inside cards must be refreshed when pending state settles.
@@ -212,6 +217,7 @@ function renderSpeech() {
 }
 function render() {
   if (!state) return;
+  planner.render(state);
   if (!themeDirty && document.activeElement !== $('theme-title') && document.activeElement !== $('theme-rules')) {
     $('theme-title').value = state.theme?.title || '';
     $('theme-rules').value = state.theme?.rules || '';

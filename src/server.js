@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-const files=new Map([['/','control.html'],['/control','control.html'],['/stage','stage.html'],['/control.js','control.js'],['/stage.js','stage.js'],['/stage-avatar.js','stage-avatar.js'],['/moon-body.js','moon-body.js'],['/app.css','app.css']]);
+const files=new Map([['/','control.html'],['/control','control.html'],['/stage','stage.html'],['/control.js','control.js'],['/theme-planner.js','theme-planner.js'],['/stage.js','stage.js'],['/stage-avatar.js','stage-avatar.js'],['/moon-body.js','moon-body.js'],['/app.css','app.css']]);
 export class LocalServer {
   constructor({app}) {this.app=app;this.clients=new Set();this.http=http.createServer((req,res)=>this.handle(req,res));this.listener=s=>this.broadcast(s);app.on('change',this.listener);}
   async start(port=3210) {

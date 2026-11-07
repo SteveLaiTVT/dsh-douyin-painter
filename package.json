@@ -12,7 +12,7 @@
     "test": "node --test tests/*.test.js",
     "check": "node scripts/check.mjs",
     "setup:capture": "node scripts/setup-capture.mjs",
-    "test:browser": "node --test tests/browser.test.mjs tests/workflow-browser.test.mjs tests/streaming-browser.test.mjs tests/avatar-browser.test.mjs",
+    "test:browser": "node --test tests/browser.test.mjs tests/workflow-browser.test.mjs tests/streaming-browser.test.mjs tests/avatar-browser.test.mjs tests/theme-planner-browser.test.mjs",
     "setup:references": "node scripts/setup-references.mjs"
   },
   "exports": {
