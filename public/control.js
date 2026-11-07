@@ -241,6 +241,8 @@ function render() {
   $('connect-button').disabled = taskBusy('connect') || connecting;
   $('connect-button').textContent = connecting ? '连接中…' : '连接';
   $('save-room').disabled = taskBusy('room');
+  if (!taskBusy('avatar')) $('avatar-enabled').checked = state.settings?.avatarEnabled !== false;
+  $('avatar-enabled').disabled = taskBusy('avatar');
   if (!roomDirty && document.activeElement !== $('room')) $('room').value = state.settings?.room || capture.room || '';
   $('feed-state').replaceChildren(make('i'), document.createTextNode(capture.state === 'running' ? '采集运行中，等待弹幕' : connected ? '实时弹幕已接入' : connecting ? '正在连接直播间' : capture.state === 'offline' ? '直播间未开播，等待中' : '等待连接直播间'));
   $('feed-state').classList.toggle('active', connected);
@@ -403,3 +405,5 @@ $('workflow-autovoice').onchange = saveWorkflowSettings;
 $('workflow-voice').onchange = saveWorkflowSettings;
 $('workflow-stop-speech').onclick = () => void dispatch({ action: 'stop-speech' });
 setInterval(renderWorkflowClock, 250);
+
+$('avatar-enabled').onchange = () => void dispatch({action: 'avatar', enabled: $('avatar-enabled').checked});

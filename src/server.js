@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-const files=new Map([['/','control.html'],['/control','control.html'],['/stage','stage.html'],['/control.js','control.js'],['/stage.js','stage.js'],['/app.css','app.css']]);
+const files=new Map([['/','control.html'],['/control','control.html'],['/stage','stage.html'],['/control.js','control.js'],['/stage.js','stage.js'],['/stage-avatar.js','stage-avatar.js'],['/moon-body.js','moon-body.js'],['/app.css','app.css']]);
 export class LocalServer {
   constructor({app}) {this.app=app;this.clients=new Set();this.http=http.createServer((req,res)=>this.handle(req,res));this.listener=s=>this.broadcast(s);app.on('change',this.listener);}
   async start(port=3210) {
@@ -19,6 +19,15 @@ export class LocalServer {
       if(req.method==='GET'&&files.has(path)) {
         const file=files.get(path);res.setHeader('Content-Type',file.endsWith('.html')?'text/html; charset=utf-8':file.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8');
         res.end(await readFile(new URL(`../public/${file}`,import.meta.url)));return;
+      }
+      const vendor=path.match(/^\/vendor\/livliv\/(body\.js|voice\.js|chunks\/[A-Za-z0-9_-]+\.js)$/);
+      if(req.method==='GET'&&vendor) {
+        try {
+          const base=new URL('./dist/',import.meta.resolve('@livliv-dev/player/package.json'));
+          const bytes=await readFile(new URL(vendor[1],base));
+          res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(bytes);
+        } catch {return json(404,{error:'播放器资源不存在，请先 npm install'});}
+        return;
       }
       if(req.method==='GET'&&path==='/api/state')return json(200,this.app.snapshot());
       if(req.method==='GET'&&path==='/api/events') {

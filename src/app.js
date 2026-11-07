@@ -19,7 +19,7 @@ export class Application extends EventEmitter {
     this.availability=config; this.epoch=0; this.revision=0; this.instanceId=uid(); this.jobs=new Map(); this.seen=new Set(); this.closed=false; this.playbackSerial=0; this.speechGeneration=0; this.stageRevision=0;
     this.writes=Promise.resolve();
     this.progressive=new ProgressiveAudio({directory:join(dataDir,'media')});this.speechControllers=new Set();
-    this.state={settings:{room:''},theme:{title:'',rules:''},round:{id:uid(),status:'idle'},capture:{state:'disconnected',message:'尚未连接直播间',room:''},comments:[],selections:[],artworks:[],speech:[],explanation:'',stage:{artworkId:null,speechId:null,caption:''},errors:[]};
+    this.state={settings:{room:'',avatarEnabled:true},theme:{title:'',rules:''},round:{id:uid(),status:'idle'},capture:{state:'disconnected',message:'尚未连接直播间',room:''},comments:[],selections:[],artworks:[],speech:[],explanation:'',stage:{artworkId:null,speechId:null,caption:''},errors:[]};
     this.workflow=new LiveWorkflow(this,{clock});
     this.onComment=c=>this.receive(c);
     this.onStatus=s=>{ if(this.closed)return; this.state.capture={...this.state.capture,...s};this.workflow.onCapture();this.changed(); };
@@ -137,6 +137,7 @@ export class Application extends EventEmitter {
       }
       case 'start':required(this.state.theme.title,'请先填写今日主题');required(this.state.round.status!=='collecting','已经在收词');this.reset();this.state.round.status='collecting';break;
       case 'close-round':required(this.state.round.status==='collecting','当前没有进行中的收词');this.state.round.status='closed';break;
+      case 'avatar':required(typeof input.enabled==='boolean','请选择是否显示动画主持');this.state.settings.avatarEnabled=input.enabled;break;
       case 'room':this.state.settings.room=normalizeRoom(input.room);break;
       case 'connect': {
         required(!this.jobs.has('connect'),'操作进行中，请稍候');

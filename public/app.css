@@ -33,3 +33,15 @@
 .stage-page .stage-selection{padding-top:calc(20*var(--u));padding-bottom:calc(20*var(--u))}
 .stage-page .stage-selection-body p{line-height:1.6}
 .stage-page .stage-bottom{display:none}
+
+/* An in-flow host row preserves the live player's edge safe areas and never overlays art. */
+.stage-page .stage-avatar{flex:none;display:flex;align-items:center;gap:calc(24*var(--u));height:calc(210*var(--u));margin-top:calc(26*var(--u));min-width:0}
+.stage-page #host-canvas{width:calc(188*var(--u));height:calc(210*var(--u));flex:none;display:block}
+.stage-page .host-bubble{flex:1;min-width:0;border-left:calc(2*var(--u)) solid #668c83;padding:calc(10*var(--u)) 0 calc(10*var(--u)) calc(22*var(--u))}
+.stage-page .host-identity{display:flex;align-items:center;gap:calc(15*var(--u));margin-bottom:calc(9*var(--u))}
+.stage-page .host-identity strong{font-size:calc(28*var(--u));color:#c5dcd0;font-weight:600}
+.stage-page #host-status{font-size:calc(21*var(--u));color:#788d89}
+.stage-page #host-caption{font-size:calc(27*var(--u));line-height:1.65;color:#aebdb7;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.stage-page .stage-avatar[data-talking=true] .host-bubble{border-left-color:#dfb982}
+.stage-page .stage-avatar[data-talking=true] #host-status{color:#dfb982}
+.stage-page .stage-avatar[data-talking=true] #host-caption{color:#deded2}

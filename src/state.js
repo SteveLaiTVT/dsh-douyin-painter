@@ -15,7 +15,7 @@ export function restoreState(saved, defaults) {
   check(Array.isArray(s.speech)&&s.speech.every(c=>object(c)&&validId(c.id)&&c.url===`/media/${c.id}`&&['audio/mpeg','audio/wav','audio/flac'].includes(c.mime)&&str(c.text)));
   check(str(s.explanation)&&object(s.stage));
   return {
-    ...defaults,settings:{room:typeof s.settings?.room==='string'?s.settings.room:''},theme:structuredClone(s.theme),round:{id:s.round.id,status:s.round.status==='collecting'?'closed':s.round.status},
+    ...defaults,settings:{room:typeof s.settings?.room==='string'?s.settings.room:'',avatarEnabled:s.settings?.avatarEnabled!==false},theme:structuredClone(s.theme),round:{id:s.round.id,status:s.round.status==='collecting'?'closed':s.round.status},
     comments:structuredClone(s.comments.slice(-500)),selections:structuredClone(s.selections),artworks:structuredClone(s.artworks),speech:structuredClone(s.speech.filter(item=>!item.streaming)),explanation:s.explanation,
     stage:{artworkId:s.artworks.some(a=>a.id===s.stage.artworkId)?s.stage.artworkId:null,speechId:null,caption:''},errors:[],
   };

@@ -7,6 +7,13 @@ let imageId = null;
 let playingReceipt = null;
 let acknowledgedKey = null;
 const audio = $('stage-audio');
+let avatar;
+// Local modules initialize before the first audio gesture, so Web Audio cannot miss it.
+$('enable-sound').disabled = true;
+void import('./stage-avatar.js').then(async ({createStageAvatar}) => {
+  avatar = await createStageAvatar({root: $('stage-avatar'), audio});
+  if (state) avatar.update(state);
+}).catch(() => { $('stage-avatar').hidden = true; $('stage-avatar').dataset.failed = 'true'; }).finally(() => { $('enable-sound').disabled = false; });
 const isVoteText = text => typeof text === 'string' && /^投\s*[123一二三](?:\s*号)?$/u.test(text.normalize('NFKC').trim());
 let streamController = null;
 let streamObjectUrl = null;
@@ -75,6 +82,7 @@ function syncAudio() {
 function render(next) {
   if (state && next.instanceId === state.instanceId && Number.isFinite(next.revision) && next.revision < state.revision) return;
   state = next;
+  avatar?.update(state);
   $('stage-offline').hidden = true;
   const workflow = state.workflow;
   const phase = workflow?.phase || (state.round?.status === 'collecting' ? 'collecting' : 'idle');
@@ -187,6 +195,7 @@ function render(next) {
   syncAudio();
 }
 $('enable-sound').onclick = () => {
+  void avatar?.enableVoice();
   soundEnabled = true;
   $('enable-sound').hidden = true;
   $('disable-sound').hidden = false;
@@ -231,4 +240,4 @@ stream.onmessage = receive;
 stream.addEventListener('data', receive);
 stream.onerror = () => { $('stage-offline').hidden = false; };
 void fetch('/api/state', { cache: 'no-store' }).then((response) => { if (!response.ok) throw Error(); return response.json(); }).then(render).catch(() => { $('stage-offline').hidden = false; });
-window.addEventListener('pagehide', () => { clearStream(); audio.pause(); stream.close(); });
+window.addEventListener('pagehide', () => { avatar?.dispose(); clearStream(); audio.pause(); stream.close(); });
