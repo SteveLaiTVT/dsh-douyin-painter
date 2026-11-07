@@ -58,7 +58,7 @@ export class ConversationDirector {
     this.recentOriginals.push({key: normalize(comment.text), at: this.clock()});
     this.recentOriginals = this.recentOriginals.slice(-200);
   }
-  async next({ theme, rules = '', phase = 'collecting', comments = [], signal } = {}) {
+  async next({ theme, themePlan, rules = '', phase = 'collecting', comments = [], signal } = {}) {
     const now = this.clock();
     if (this.active || signal?.aborted || now - this.lastAttempt < this.cooldownMs || !Array.isArray(comments)) return null;
     this.recentReplies = this.recentReplies.filter(item => now - item.at < REPLY_WINDOW_MS);
@@ -80,7 +80,7 @@ export class ConversationDirector {
     this.active = token; this.lastAttempt = now; this.lastError = null;
     const combined = signal ? AbortSignal.any([signal, token.controller.signal]) : token.controller.signal;
     try {
-      const result = await this.text.converse({ theme, rules, phase, comments: candidates, history, recentReplies: this.recentReplies.map(({text,kind}) => ({text,kind})), signal: combined });
+      const result = await this.text.converse({ theme, themePlan, rules, phase, comments: candidates, history, recentReplies: this.recentReplies.map(({text,kind}) => ({text,kind})), signal: combined });
       if (this.epoch !== token.epoch || combined.aborted) return null;
       if (!result || result.commentId === null) {
         for (const candidate of candidates) this.consume(candidate);

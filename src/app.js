@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { join } from 'node:path';
+import {normalizeThemePlan,normalizeGeneratedThemePlans} from './theme-planning.js';
 import { restoreState } from './state.js';
 import { LiveWorkflow } from './workflow.js';
 import { parseVote } from './voting.js';
@@ -19,7 +20,7 @@ export class Application extends EventEmitter {
     this.availability=config; this.epoch=0; this.revision=0; this.instanceId=uid(); this.jobs=new Map(); this.seen=new Set(); this.closed=false; this.playbackSerial=0; this.speechGeneration=0; this.stageRevision=0;
     this.writes=Promise.resolve();
     this.progressive=new ProgressiveAudio({directory:join(dataDir,'media')});this.speechControllers=new Set();
-    this.state={settings:{room:'',avatarEnabled:true},theme:{title:'',rules:''},round:{id:uid(),status:'idle'},capture:{state:'disconnected',message:'尚未连接直播间',room:''},comments:[],selections:[],artworks:[],speech:[],explanation:'',stage:{artworkId:null,speechId:null,caption:''},errors:[]};
+    this.state={settings:{room:'',avatarEnabled:true},theme:{title:'',rules:''},themeDraft:null,round:{id:uid(),status:'idle'},capture:{state:'disconnected',message:'尚未连接直播间',room:''},comments:[],selections:[],artworks:[],speech:[],explanation:'',stage:{artworkId:null,speechId:null,caption:''},errors:[]};
     this.workflow=new LiveWorkflow(this,{clock});
     this.onComment=c=>this.receive(c);
     this.onStatus=s=>{ if(this.closed)return; this.state.capture={...this.state.capture,...s};this.workflow.onCapture();this.changed(); };
@@ -71,7 +72,7 @@ export class Application extends EventEmitter {
     this.abortSpeechStreams();
     this.workflow.reset();
     this.stageRevision++; this.speechGeneration++;
-    this.epoch++;for(const [key,job] of this.jobs)if(key!=='connect')job.controller.abort();
+    this.epoch++;for(const [key,job] of this.jobs)if(!['connect','theme-plan'].includes(key))job.controller.abort();
     this.state.round={id:uid(),status:'idle'};this.state.selections=[];this.state.explanation='';
     this.state.stage={artworkId:null,speechId:null,caption:''};
   }
@@ -130,8 +131,28 @@ export class Application extends EventEmitter {
     required(!this.closed,'应用已关闭');const action=input.action;
     if(action?.startsWith('workflow-'))return this.workflow.dispatch(input);
     if(['start','close-round','select','generate'].includes(action)&&this.state.workflow.phase!=='idle'&&internal!==this.workflow)throw Error('请使用上方工作流主控，完成本轮投票和揭晓作画');
-    const context=()=>({theme:this.state.theme.title,rules:this.state.theme.rules});
+    const context=()=>({theme:this.state.theme.title,rules:this.state.theme.rules,...(this.state.theme.plan?{themePlan:this.state.theme.plan}:{})});
     switch(action) {
+      case 'theme-plan': {
+        const seed=string(input.theme,100);required(seed,'请先填写想策划的主题');required(typeof this.text?.planTheme==='function','当前文本服务暂不支持主题策划');
+        const notes=string(input.notes,1500);
+        await this.task('theme-plan',signal=>this.text.planTheme({theme:seed,notes,signal}),result=>{
+          const options=normalizeGeneratedThemePlans(result.options).map(plan=>({id:uid(),plan}));
+          this.state.themeDraft={id:uid(),seed,notes,createdAt:this.clock(),revision:1,options};
+        },{scoped:false});break;
+      }
+      case 'theme-plan-save':case 'theme-plan-apply': {
+        const draft=this.state.themeDraft;required(draft&&draft.id===input.draftId,'策划草案已过期，请重新载入最新草案');
+        required(!this.jobs.has('theme-plan'),'策划正在生成，请完成后再操作');
+        required(Number.isInteger(input.revision)&&input.revision===draft.revision,'策划已被其他页面修改，请重新载入');
+        const option=draft.options.find(item=>item.id===input.optionId);required(option,'未找到该策划方向');
+        const plan=normalizeThemePlan(input.plan||option.plan);
+        if(action==='theme-plan-apply'){
+          required(['idle','revealed','error'].includes(this.state.workflow.phase)&&this.state.round.status!=='collecting','请结束本轮后再应用新策划');
+          this.reset();this.state.theme={title:plan.title,rules:plan.rules,plan,planSelection:{draftId:draft.id,optionId:option.id},approvedAt:this.clock()};this.state.explanation=plan.hostIntro;
+        }
+        option.plan=plan;draft.revision++;break;
+      }
       case 'theme': {
         const title=string(input.title,100);required(title,'请先填写今日主题');this.reset();this.state.theme={title,rules:string(input.rules,2000)};break;
       }
@@ -169,7 +190,7 @@ export class Application extends EventEmitter {
           });
         });break;
       }
-      case 'explain':required(this.state.theme.title,'请先填写今日主题');await this.task('explain',signal=>this.text.explain({...context(),signal}),r=>{required(string(r.text),'规则解说为空');this.state.explanation=string(r.text);});break;
+      case 'explain':required(this.state.theme.title,'请先填写今日主题');if(this.state.theme.plan){this.state.explanation=this.state.theme.plan.hostIntro;break;}await this.task('explain',signal=>this.text.explain({...context(),signal}),r=>{required(string(r.text),'规则解说为空');this.state.explanation=string(r.text);});break;
       case 'evaluate':case 'reply': {
         const c=this.comment(input.commentId);required(this.state.theme.title,'请先填写今日主题');
         await this.task(`${action}:${c.id}`,signal=>this.text[action]({...context(),comment:{...c},signal}),r=>{
@@ -185,7 +206,7 @@ export class Application extends EventEmitter {
         const originalText=originals.length?originals.join('\n'):selected.text;
         const references=this.artReferences(originalText);
         required(this.epoch===epoch&&!this.closed,'出图任务已过时');
-        const artPrompt=buildArtPrompt({prompt:selected.prompt,originalText,theme:this.state.theme.title,style:string(input.style,300),referenceNotes:references.notes,format});
+        const artPrompt=buildArtPrompt({prompt:selected.prompt,originalText,theme:this.state.theme.title,style:string(input.style,300),referenceNotes:references.notes,themePlan:this.state.theme.plan,format});
         await this.task(`generate:${c.id}`,signal=>this.image.generate({prompt:artPrompt,artDirected:true,references:references.images,signal,format}),async r=>{
           if(input.format==='gif')required(r.mime==='image/gif','动图接口没有返回GIF，未用静图替代');
           const artwork=await this.media(r,'image',{commentId:c.id,text:selected.text,nickname:selected.nickname,prompt:artPrompt,info:r.info,references:references.sources,theme:this.state.theme.title});

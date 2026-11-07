@@ -1,16 +1,18 @@
+import {samplePlan} from './fixtures/theme-plan.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { HarnessText } from '../src/harness-text.js';
 import * as plugin from '../src/plugin.js';
 const createUserMessage = data => ({id:'prompt-1',...data});
-function host({delay=5,error=false,never=false,invalid=false}={}) {
- const events=new EventEmitter();const state={created:[],disposed:0,cancelled:0,whenIdle:0,toolRestriction:null,toolGuard:null,hooks:{}};
+function host({delay=5,error=false,never=false,invalid=false,reply={text:"欢迎画月亮"}}={}) {
+ const events=new EventEmitter();const state={created:[],messages:[],disposed:0,cancelled:0,whenIdle:0,toolRestriction:null,toolGuard:null,hooks:{}};
  const session={id:'owned'};let idle=Promise.resolve();
  const ctx={on(name,fn){events.on(name,fn);return ()=>events.off(name,fn);},agents:{async create(options){
   state.created.push(options);
   await options.setup({tools:{restrict(value){state.toolRestriction=value;},guard(fn){state.toolGuard=fn;}},on(name,fn){state.hooks[name]=fn;return ()=>{};}});
   const agent={session,followup(message){
+   state.messages.push(message);
    events.emit('session/event',session,{type:'assistant/message',data:{message:{content:[{type:'text',text:'{"text":"old"}'}]}}});
    events.emit('session/event',session,{type:'agent/inbox/spliced',data:{inserted:[message]}});
    idle=new Promise(resolve=>{
@@ -19,7 +21,7 @@ function host({delay=5,error=false,never=false,invalid=false}={}) {
      events.emit('session/event',{id:'foreign'},{type:'assistant/message',data:{message:{content:[{type:'text',text:'{"text":"foreign"}'}]}}});
      events.emit('session/event',session,{type:'assistant/attempt',data:{message:{content:[{type:'text',text:'{"text":"attempt"}'}]}}});
      if(error)events.emit('agent/error',{agent,error:Error('private-key')});
-     else events.emit('session/event',session,{type:'assistant/message',data:{message:{content:[{type:'text',text:invalid?'invalid':'{"text":"欢迎画月亮"}'}]}}});
+     else events.emit('session/event',session,{type:'assistant/message',data:{message:{content:[{type:'text',text:invalid?'invalid':JSON.stringify(reply)}]}}});
      resolve();
     },delay);
    });
@@ -125,4 +127,15 @@ test('Harness guard denies global and later scoped tools and caps all model requ
  assert.equal(requests,1);
  let retries=0;assert.equal(await state.hooks['agent/request-error']({},async()=>{retries++;return {kind:'retry'};}),undefined);
  assert.equal(retries,0);await text.close();
+});
+
+test('Harness theme planning uses the same complete schema with its larger single-request budget',async()=>{
+ const options=[samplePlan(),samplePlan('科幻'),samplePlan('志怪')];const {ctx,state}=host({reply:{options}});const text=new HarnessText(ctx,{createUserMessage});
+ assert.deepEqual(await text.planTheme({theme:'月亮便利店'}),{options});assert.equal(state.created[0].agentOptions.maxTokens,6500);assert.equal(state.created[0].agentOptions.reasoningEffort,'off');assert.equal(state.disposed,1);await text.close();
+});
+
+test('Harness shares the reviewed-plan fiction boundary with the API adapter',async()=>{
+ const {ctx,state}=host();const text=new HarnessText(ctx,{createUserMessage});
+ await text.reply({theme:'月球失物招领',themePlan:samplePlan(),comment:{id:'real-1',text:'旧车票',nickname:'旅人'}});
+ assert.match(state.messages[0].content[0].text,/其中示例和镜头是虚构策划/);assert.match(state.messages[0].content[0].text,/绝不能当成观众原话/);assert.match(state.messages[0].content[0].text,/reviewedPlan/);await text.close();
 });

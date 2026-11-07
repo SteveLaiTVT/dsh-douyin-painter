@@ -20,7 +20,7 @@ export class LiveWorkflow {
   warn(e){this.app.state.errors.push(e.message||'工作流操作失败');this.app.state.errors=this.app.state.errors.slice(-5);}
   say(text,{expiresAt}={}){if(this.s.autoVoice&&this.s.phase!=='paused')this.queue.enqueue({text,voiceId:this.s.voiceId,expiresAt});}
   ruleGate(){
-    const key=JSON.stringify([this.app.state.theme.title,this.app.state.theme.rules]);
+    const key=JSON.stringify([this.app.state.theme.title,this.app.state.theme.rules,this.app.state.theme.plan?.hostIntro||null]);
     if(!this.ruleGates.has(key)){
       this.ruleGates.set(key,{explanation:'',text:'',nextAt:-Infinity});
       while(this.ruleGates.size>10)this.ruleGates.delete(this.ruleGates.keys().next().value);
@@ -78,7 +78,7 @@ export class LiveWorkflow {
       case 'workflow-start': {
         requireThat(!['collecting','selecting','voting','paused','generating'].includes(this.s.phase),'当前一轮尚未结束');
         await app.dispatch({action:'start'},this);this.s.collectSeconds=seconds(input.collectSeconds,90,600);this.s.voteSeconds=seconds(input.voteSeconds,30,180);this.s.autoChat=input.autoChat!==false;this.s.autoVoice=input.autoVoice!==false;if(input.voiceId)this.setVoice(input.voiceId);this.allowManualVotes=input.allowManualVotes===true;
-        this.s.phase='collecting';this.s.startedAt=this.clock();this.s.deadline=this.clock()+this.s.collectSeconds*1000;this.s.currentQuestion=`今天的主题是「${app.state.theme.title}」，你有什么有画面感的创意？`;this.s.message='正在收集创意，投票将在候选公布后开始';const version=this.version;
+        this.s.phase='collecting';this.s.startedAt=this.clock();this.s.deadline=this.clock()+this.s.collectSeconds*1000;this.s.currentQuestion=app.state.theme.plan?.audiencePrompt||`今天的主题是「${app.state.theme.title}」，你有什么有画面感的创意？`;this.s.message='正在收集创意，投票将在候选公布后开始';const version=this.version;
         await this.exclusive(async()=>{try{
           const gate=this.ruleGate();
           if(gate.explanation)app.state.explanation=gate.explanation;
@@ -130,6 +130,6 @@ export class LiveWorkflow {
     if(['collecting','voting'].includes(this.s.phase)&&Math.floor(this.clock()/1000)!==this.lastTick){this.lastTick=Math.floor(this.clock()/1000);changed=true;}
     if(changed)this.app.changed();
     this.remindRules();
-    if(this.s.autoChat&&['collecting','voting','generating'].includes(this.s.phase)&&(!this.op||this.s.phase==='generating')&&this.app.text?.converse){const version=this.version,phase=this.s.phase;const result=await this.conversation.next({theme:this.app.state.theme.title,rules:this.app.state.theme.rules,phase,comments:this.app.state.comments.filter(c=>c.receivedAt>=this.s.startedAt)});if(version!==this.version||phase!==this.s.phase||!this.s.autoChat)return;if(!result){if(this.conversation.lastError){this.s.autoChat=false;this.s.message='AI接话未完成，已暂停自动接话，请检查后重新开启';this.warn(Error(this.conversation.lastError));this.app.changed();}return;}if(result.kind==='rules'){this.remindRules();return;}const c=this.app.state.comments.find(c=>c.id===result.commentId);if(!c)return;const entry={...result,nickname:c.nickname,at:this.clock()};this.s.conversation.push(entry);this.s.conversation=this.s.conversation.slice(-20);this.s.currentQuestion=result.text;c.reply=result.text;this.app.state.stage.caption=result.text;const narration=this.interactionNarration(result,c);if(narration)this.say(narration,{expiresAt:this.clock()+15000});this.app.changed();}
+    if(this.s.autoChat&&['collecting','voting','generating'].includes(this.s.phase)&&(!this.op||this.s.phase==='generating')&&this.app.text?.converse){const version=this.version,phase=this.s.phase;const result=await this.conversation.next({theme:this.app.state.theme.title,rules:this.app.state.theme.rules,themePlan:this.app.state.theme.plan,phase,comments:this.app.state.comments.filter(c=>c.receivedAt>=this.s.startedAt)});if(version!==this.version||phase!==this.s.phase||!this.s.autoChat)return;if(!result){if(this.conversation.lastError){this.s.autoChat=false;this.s.message='AI接话未完成，已暂停自动接话，请检查后重新开启';this.warn(Error(this.conversation.lastError));this.app.changed();}return;}if(result.kind==='rules'){this.remindRules();return;}const c=this.app.state.comments.find(c=>c.id===result.commentId);if(!c)return;const entry={...result,nickname:c.nickname,at:this.clock()};this.s.conversation.push(entry);this.s.conversation=this.s.conversation.slice(-20);this.s.currentQuestion=result.text;c.reply=result.text;this.app.state.stage.caption=result.text;const narration=this.interactionNarration(result,c);if(narration)this.say(narration,{expiresAt:this.clock()+15000});this.app.changed();}
   }
 }
