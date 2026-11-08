@@ -43,6 +43,8 @@
   },
   "dependencies": {
     "@livliv-dev/player": "0.3.0",
-    "@stevelife/ai-kit": "git+https://cnb.cool/stevelife524/lib/ai-kit.git#055c4309b36e40029730d407130b5721ea9c642d"
+    "@stevelife/ai-kit": "git+https://cnb.cool/stevelife524/lib/ai-kit.git#055c4309b36e40029730d407130b5721ea9c642d",
+    "@stevelife/speech-generation": "git+https://cnb.cool/stevelife524/lib/speech-generation.git#b250cf6466743cf1cd1c396b5276c6954086f697",
+    "@stevelife/image-generation": "git+https://cnb.cool/stevelife524/lib/image-generation.git#5c199095b30c058114162c7907487331ad67309c"
   }
 }

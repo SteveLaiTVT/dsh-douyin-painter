@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import omggif from 'omggif';
 import { OpenAIImage } from '../src/providers/openai.js';
-const png: any=Buffer.from('89504e470d0a1a0a00000000','hex');
+const png: any=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=','base64');
 const jpeg: any=Buffer.from('ffd8ffe000104a464946000101','hex');
 const webp: any=Buffer.from('524946460400000057454250','hex');
 function gif(){const bytes: any=Buffer.alloc(10000);const writer: any=new omggif.GifWriter(bytes,2,2,{palette:[0,0xffffff],loop:0});for(let i: any=0;i<6;i++)writer.addFrame(0,0,2,2,new Uint8Array([i%2,1,0,1]),{delay:20});return bytes.subarray(0,writer.end());}

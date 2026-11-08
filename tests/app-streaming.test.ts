@@ -51,3 +51,14 @@ test('validated same-viewer supplements supply both the named prop reference and
  app.image={generate:async (input: any)=>{sent=input;return {bytes:Buffer.from('png'),mime:'image/png'};}};
  await app.dispatch({action:'generate',commentId:'first',format:'png'});assert.equal(sent.references.length,1);assert.match(sent.prompt,/就是月光宝盒，做成水彩风/);assert.ok(!sent.prompt.includes(stranger.text));
 });
+test('SDK completion failure after local chunks finish removes the replay and persisted file',async (t: any)=>{
+ const provider=Promise.withResolvers<void>();
+ const {app,dataDir}=await setup(t,{openStream:async()=>({chunks:(async function*(){yield Buffer.from('ID3complete');})(),completion:provider.promise})});
+ const {media,completion}=await app.prepareSpeech({text:'等待 SDK 完成'});void completion.catch(()=>{});
+ await settle();await settle();
+ assert.equal(app.snapshot().speech[0].streaming,true);
+ provider.reject(Error('provider cleanup failed'));
+ await assert.rejects(completion,/provider cleanup failed/);
+ assert.equal(app.snapshot().speech.length,0);
+ await assert.rejects(readFile(join(dataDir,'media',media.id)),{code:'ENOENT'});
+});

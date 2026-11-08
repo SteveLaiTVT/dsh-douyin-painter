@@ -19,13 +19,13 @@ test('GPT Image GIF request is native non-streaming animation and returns inspec
  assert.deepEqual(result,{bytes,mime:'image/gif',info:{frames:6,width:2,height:2,durationMs:1200}});
 });
 test('GIF generation can be requested explicitly while old PNG generation stays compatible',async()=>{
- const animated: any=gif({frames:2});const png: any=Buffer.from('89504e470d0a1a0a00000000','hex');let body: any;
+ const animated: any=gif({frames:2});const png: any=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=','base64');let body: any;
  const provider: any=new OpenAIImage({apiKey:'test',format:'gif',fetchImpl:async(_url: any,options: any)=>{body=JSON.parse(options.body);return response(body.output_format==='gif'?animated:png);}});
  assert.equal((await provider.generate({prompt:'猫',format:'png'})).mime,'image/png');assert.equal(body.size,'1024x1024');assert.equal(body.frame_count,undefined);
  assert.equal((await provider.generate({prompt:'猫',format:'gif'})).mime,'image/gif');
 });
 test('GIF output rejects a PNG fallback, single frame, broken content and invalid frame delays',async()=>{
- for(const bytes of [Buffer.from('89504e470d0a1a0a00000000','hex'),gif({frames:1}),gif({delay:0}),Buffer.from('GIF89a')]){
+ for(const bytes of [Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=','base64'),gif({frames:1}),gif({delay:0}),Buffer.from('GIF89a')]){
   const provider: any=new OpenAIImage({apiKey:'test',fetchImpl:async()=>response(bytes)});
   await assert.rejects(()=>provider.generate({prompt:'猫',format:'gif'}),/GIF|动图/);
  }

@@ -1,5 +1,5 @@
 import {VotingRound,parseVote} from './voting.js';
-import {SpeechQueue} from './speech-queue.js';
+import {PlaybackQueue} from './playback-queue.js';
 import {ConversationDirector} from './conversation.js';
 import {viewerKey} from './comment-processing.js';
 const requireThat: any=(value: any,message: any)=>{if(!value)throw Error(message);};
@@ -11,7 +11,7 @@ export class LiveWorkflow {
   constructor(app: any,{clock=Date.now}: any={}) {
     this.app=app;this.clock=clock;this.ruleGates=new Map();this.version=0;this.op=null;this.vote=null;this.conversation=new ConversationDirector({text:app.text?.converse?app.text:{converse:async()=>({commentId:null,text:'',readOriginal:false})},clock});
     this.app.state.workflow=this.initial();
-    this.queue=new SpeechQueue({clock,synthesize:async(item: any,signal: any)=>{
+    this.queue=new PlaybackQueue({clock,synthesize:async(item: any,signal: any)=>{
       return await app.prepareSpeech({text:item.text,voiceId:item.voiceId,signal});
     },onPlay:(media: any,item: any)=>{app.state.stage.speechId=media.id;app.state.stage.speechRevision=++app.playbackSerial;app.state.stage.caption=item.text;return {revision:app.playbackSerial};},onStop:(old: any)=>{if(app.state.stage.speechId===old.mediaId&&app.state.stage.speechRevision===old.revision){app.state.stage.speechId=null;app.state.stage.caption='';}},onError:(e: any)=>{this.s.autoVoice=false;this.s.message='语音未完成，自动朗读已暂停；可检查后重新开启';this.warn(e);app.changed();},onChange:()=>app.changed()});
   }

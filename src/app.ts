@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, rename, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import {normalizeThemePlan,normalizeGeneratedThemePlans} from './theme-planning.js';
 import { restoreState } from './state.js';
@@ -112,15 +112,18 @@ export class Application extends EventEmitter {
     try{
       valid();
       if(typeof this.speech.openStream==='function'){
-        const output: any=await this.speech.openStream({text,voiceId,signal:combined});valid();
+        const output: any=await this.speech.openStream({text,voiceId,signal:combined});
+        const providerCompletion=Promise.resolve(output.completion);void providerCompletion.catch(()=>controller.abort());valid();
         live=await this.progressive.open({chunks:output.chunks,signal:combined});valid();
         const media: any={...live.media,text,voiceId};this.state.speech.push(media);this.changed();
-        const completion: any=live.completion.then(()=>{
+        const completion: any=Promise.all([live.completion,providerCompletion]).then(()=>{
           media.streaming=false;this.progressive.release(media.id);if(!this.closed)this.changed();
-        },(error: any)=>{
+        },async(error: any)=>{
+          controller.abort();await live.completion.catch(()=>{});
           this.state.speech=this.state.speech.filter((item: any)=>item.id!==media.id);
           if(this.state.stage.speechId===media.id){this.state.stage.speechId=null;this.state.stage.caption='';}
-          this.progressive.release(media.id);if(!this.closed)this.changed();throw error;
+          this.progressive.release(media.id);if(!this.closed)this.changed();
+          await rm(join(this.dataDir,'media',live.media.id),{force:true});throw error;
         }).finally(()=>this.speechControllers.delete(controller));
         completion.catch(()=>{});return {media,completion};
       }
@@ -237,6 +240,6 @@ export class Application extends EventEmitter {
   async close() {
     if(this.closed)return;this.abortSpeechStreams();this.progressive.close();this.closed=true;clearInterval(this.workflowTimer);this.workflow.reset();this.epoch++;for(const job of this.jobs.values())job.controller.abort();
     this.capture?.off('comment',this.onComment);this.capture?.off('status',this.onStatus);
-    await this.capture?.stop();await this.flush();
+    await Promise.all([this.capture?.stop(),this.speech?.close?.({mode:'cancel'}),this.image?.close?.({mode:'cancel'})]);await this.flush();
   }
 }
