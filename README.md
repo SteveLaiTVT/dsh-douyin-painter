@@ -104,10 +104,23 @@ cd capture && go test ./...
 - `npm start`：先构建再启动；Harness 插件入口为 `dist/src/plugin.js`，安装本地插件前执行构建。
 - `cd capture && go test ./...`：Go 采集器测试。
 
-通用能力唯一维护入口为 [lib/ai-kit](https://cnb.cool/stevelife524/lib/ai-kit)，主项目通过固定 Git 提交依赖 `@stevelife/ai-kit@0.1.0`，不保留 SDK 源码副本。执行 `npm ci` 会安装并构建 SDK，需要 CNB Git 读取权限。SDK 的 20 项测试在独立仓库运行，协议修复和版本发布也在那里维护；业务项目仅维护适配器、提示词和版本升级。
+通用生成能力按项目独立维护，主项目通过固定 CNB Git 提交消费，不保留 SDK 源码副本：
 
-已打包的 npm 安装包在 [CNB Release v0.1.0](https://cnb.cool/stevelife524/lib/ai-kit/-/releases/tag/v0.1.0)。这是 Git/Release 分发，尚未发布 npm registry。
+| SDK | 责任 | 默认业务配置 |
+| --- | --- | --- |
+| [speech-generation](https://cnb.cool/stevelife524/lib/speech-generation) | 语音生成服务、MiniMax provider、整段/流式任务、诊断与重试 | 2 路执行，额外容量 8，60 秒总预算 |
+| [image-generation](https://cnb.cool/stevelife524/lib/image-generation) | 图片生成服务、OpenAI-compatible provider、本地参考图与媒体校验 | 1 路执行，额外容量 8，120 秒总预算 |
+| [task-runtime](https://cnb.cool/stevelife524/lib/task-runtime) | 共用有界队列、并发、生命周期、退避重试和结构化日志 | 由两个生成 SDK 内部使用 |
+
+SDK 均为 strict TypeScript，发布了 CNB Release `v0.1.0` 的 npm tarball。`npm ci` 需要 CNB Git 读取权限，自动安装并构建依赖。当前为 Git/Release 分发，尚未发布 npm registry。
+
+`src/providers/openai.ts`、`minimax.ts` 仅负责业务参数白名单、美术提示词和错误中文显示，实际任务由 SDK 服务队列执行。`PlaybackQueue` 只负责有界播放预取、过期策略、舞台回执与播放顺序，供应商并发由 SDK 统一控制。应用关闭会取消并关闭生成服务；流式音频只有在 SDK completion 和本地写入都完成后才成为成功回放。
+
+重试默认1次（不重试），避免隐式重复付费。其他业务可在 SDK 配置中显式启用有限退避重试；未知扣费结果还需额外 opt-in，音频输出后不自动重试。默认输出结构化 warn/error 日志，可注入 logger 或关闭；事件带 taskId/provider/attempt，SDKError 带 taskId/attempt，支持业务关联与诊断。完整编排示例、接口与故障测试在各 SDK 仓库。
+
+[旧 ai-kit](https://cnb.cool/stevelife524/lib/ai-kit) 继续兼容文本 JSON/文件 ASR 客户端；主项目不再从它消费 TTS 或生图。SDK 的 provider、通用服务机制与测试只在对应 SDK 仓库维护，业务项目显式升级依赖。
+
 
 比赛提示词、主题策划、图片艺术指导仍属于应用，通用包不依赖这些模块。新增 ASR 是供其他项目复用的文件转录客户端；当前直播应用没有新增麦克风或转录交互。
 
-迁移边界：全部可执行源码已迁移 TypeScript，并真正参与编译，没有 `noCheck` 或 `@ts-nocheck`。通用包使用 strict 编译并提供公开参数/结果声明。主项目仍是迁移期配置（`strict: false`），历史动态状态、DOM 适配及测试包含显式 `any` 和类索引签名；这并不等于完成领域类型建模。后续应按状态、动作和宿主接口逐模块收紧，而不是把编译通过当作完整类型安全。`dev` 当前监听编译产物；修改源码后需重新执行 build。
+迁移边界：全部可执行源码已迁移 TypeScript，并真正参与编译，没有 `noCheck` 或 `@ts-nocheck`。生成 SDK 使用 strict 编译并提供公开参数/结果声明。主项目仍是迁移期配置（`strict: false`），历史动态状态、DOM 适配及测试包含显式 `any` 和类索引签名；这并不等于完成领域类型建模。后续应按状态、动作和宿主接口逐模块收紧，而不是把编译通过当作完整类型安全。`dev` 当前监听编译产物；修改源码后需重新执行 build。
