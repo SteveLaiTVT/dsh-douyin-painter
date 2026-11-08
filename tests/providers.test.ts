@@ -4,6 +4,7 @@ import { DeepSeekText } from '../src/providers/deepseek.js';
 import { OpenAIImage } from '../src/providers/openai.js';
 import { MiniMaxSpeech } from '../src/providers/minimax.js';
 import { buildArtPrompt } from '../src/art-direction.js';
+import { localized } from '../src/providers/service-errors.js';
 
 const json: any = (body: any) => new Response(JSON.stringify(body), {headers:{'content-type':'application/json'}});
 const chat: any = (body: any) => json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(body)}}]});
@@ -219,6 +220,18 @@ test('only explicit internal artDirected true uses the application-built prompt 
  const png: any=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=','base64');const prompt: any=buildArtPrompt({prompt:'月饼',originalText:'月饼',format:'png'});const s: any=spy(()=>json({data:[{b64_json:png.toString('base64')}]}));
  await new OpenAIImage({apiKey:'key',...s}).generate({prompt,format:'png',artDirected:true});
  assert.equal(s.calls[0].body.prompt,prompt);assert.equal(s.calls[0].body.prompt.split('【美术指导 v1｜png】').length-1,1);
+});
+
+test('unexpected provider errors keep a safe UI message while retaining the raw cause',()=>{
+ const raw: any=new TypeError('socket hang up');const originalError=console.error;
+ let logged: any=null;
+ try{
+  console.error=(...args: any[])=>{logged=args;};
+  const result: any=localized(raw,'speech');
+  assert.equal(result.message,'语音服务未完成');
+  assert.equal(result.cause,raw);
+  assert.equal(logged[1],raw);
+ }finally{console.error=originalError;}
 });
 
 test('selection directs recognizable Chinese cinematic objects before mood without defaulting to Western franchises',async()=>{

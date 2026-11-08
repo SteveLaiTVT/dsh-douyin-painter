@@ -2,7 +2,12 @@
 import {SDKError} from '@stevelife/speech-generation';
 import {SDKError as ImageSDKError} from '@stevelife/image-generation';
 export function localized(error: unknown, kind: 'speech'|'image'): Error {
- if(!(error instanceof SDKError)&&!(error instanceof ImageSDKError))return new Error(kind==='speech'?'语音服务未完成':'图片服务未完成');
+ if(!(error instanceof SDKError)&&!(error instanceof ImageSDKError)){
+  // Raw provider errors are not sanitized for display. Keep the UI text generic,
+  // but retain the original error on cause and in server logs for diagnosis.
+  console.error(`[${kind}] 生成服务出现非 SDK 异常`,error);
+  return new Error(kind==='speech'?'语音服务未完成':'图片服务未完成',{cause:error});
+ }
  const label=kind==='speech'?'语音':'图片';
  let message:string;
  switch(error.code){
