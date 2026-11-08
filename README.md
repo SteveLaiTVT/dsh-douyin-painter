@@ -40,15 +40,15 @@ DeepSeek 默认 `deepseek-flash`，显式关闭思考；动图默认 `gpt-image-
 
 采集完整传递消息 ID 和 UID；业务保留房间、来源与 UID，不用昵称识别人。消息传输重复按房间和来源去重。同一 UID 的重复文本在界面折叠并标记次数，不增加评选权重；不同创意及聊天仍保留。未知 UID 明确显示「身份未知」，不强行归并；手动代录可填写 UID 以验证流程，manual 与 live 身份分开。
 
-规则机制位于 `src/comment-processing.js`，主题相关性、聊天噪音和创意好坏由 DeepSeek 在收词后评选时判断，不对每条弹幕自动收费调用。每个已知观众每轮最多一个入选名额；可结合明确属于同一创意的补充，并展示实际引用的原文依据，不能跨观众拼接。模型若返回越界用户、重复名额或不存在的原文，会明确报错而非自动重试。实际语义筛选质量仍需真实模型调用验证。
+规则机制位于 `src/comment-processing.ts`，主题相关性、聊天噪音和创意好坏由 DeepSeek 在收词后评选时判断，不对每条弹幕自动收费调用。每个已知观众每轮最多一个入选名额；可结合明确属于同一创意的补充，并展示实际引用的原文依据，不能跨观众拼接。模型若返回越界用户、重复名额或不存在的原文，会明确报错而非自动重试。实际语义筛选质量仍需真实模型调用验证。
 
 ## 模块与插件
 
-- `src/app.js`：主题比赛、任务状态、记录和媒体，不依赖 Harness。
+- `src/app.ts`：主题比赛、任务状态、记录和媒体，不依赖 Harness。
 - `src/providers/`：DeepSeek 解说/评估/评选/回复、OpenAI 图片、MiniMax 语音。
-- `src/capture.js`、`capture/`：自动管理的真实弹幕采集器。
-- `src/server.js`、`public/`：本机 HTTP/SSE、工作台和舞台。
-- `src/harness-text.js`、`src/plugin.js`：最后挂接 Harness 的适配层，复用前述模块。宿主模式由 Harness 的 agents 服务执行文本任务，独立模式直连 DeepSeek API。
+- `src/capture.ts`、`capture/`：自动管理的真实弹幕采集器。
+- `src/server.ts`、`public/`：本机 HTTP/SSE、工作台和舞台。
+- `src/harness-text.ts`、`src/plugin.ts`：最后挂接 Harness 的适配层，复用前述模块。宿主模式由 Harness 的 agents 服务执行文本任务，独立模式直连 DeepSeek API。
 
 Harness 插件导出 `name/inject/apply`，`cordis.patch.yml` 提供 bundle 补丁。先按你的宿主版本将此本地包安装进 profile，再引用补丁；配置 `root` 为本项目绝对路径以读取本项目 `.env.local`/数据目录，`provider` 和 `model` 使用宿主已配置的 DeepSeek 路由。`textMode: api` 可在宿主中继续使用独立 API 模块。未实际加载宿主前，不将导入测试称为宿主验收。适配依据本机官方源码 SHA `571902028a75c64c1d767f4ae5fd099485f0ddf0`。
 
@@ -92,3 +92,36 @@ cd capture && go test ./...
 生成只保存草案。选择一个方向后可以修改所有字段、保存草稿，最后点击“确认并应用这份方案”。直播当前轮次进行时仍可准备草案，应用须等本轮结束。草案和已批准方案跨重启保留；多页面修改有版本校验，实时刷新不会覆盖未保存的编辑。
 
 审核内容会进入主持接话、候选评选和生图；审核后的世界背景替代旧主题预设，观众明确的画风与道具辨识仍优先。开场使用审核后的开场词。故事板组织整场直播叙事，单个商品 GIF 只取一镜轻动作，不生成多镜头长片。虚构示例不会作为观众投稿计入比赛。单次生成不自动重试，失败保留上一份草案；旧的直接设置主题功能仍可使用。
+
+
+## TypeScript 与通用 npm 包
+
+源码目录为 `src/`、`web/`、`scripts/`、`tests/`，构建输出为 `dist/` 与 `public/*.js`。修改浏览器源码请编辑 `web/*.ts`，生成文件不纳入 Git。执行 `npm ci` 后（需安装 devDependencies：`prepare` 会触发构建，因此还需要 CNB Git 读取权限与 npm registry 访问）：
+
+- `npm run build` / `npm run check`：`prebuild` 先清理 `dist/` 与 `public/*.js`，再编译服务端、脚本、测试和浏览器 TypeScript；编译错误阻止输出。三个通用 SDK 由各自仓库预构建，不在本仓库编译。
+- `npm test`：194 项应用离线回归（含关闭落盘与非 SDK 异常诊断）；SDK 测试在独立仓库执行。测试清单由 `tests/*.ts` 派生，不枚举 `dist/` 里的残留产物。
+- `npm run test:browser`：13 项 Playwright 浏览器回归。
+- `npm start`：先构建再启动；Harness 插件入口为 `dist/src/plugin.js`。以 npm tarball 或 Git 依赖方式安装本包时，`prepare` 自动构建，`files` 白名单把 `dist/`、`public/*.js` 打进包并排除 `.workbuddy/`、`.data/` 等本机数据。`npm ci --omit=dev` 缺少 `typescript`，无法完成构建，只适用于已有预构建产物的场景。
+- `cd capture && go test ./...`：Go 采集器测试。
+
+通用生成能力按项目独立维护，主项目通过固定 CNB Git 提交消费，不保留 SDK 源码副本：
+
+| SDK | 责任 | 默认业务配置 |
+| --- | --- | --- |
+| [ai-kit](https://cnb.cool/stevelife524/lib/ai-kit) | 文本 JSON 客户端与文件 ASR；`DeepSeekText` 仍直接使用 | 非思考模式 JSON 协议 |
+| [speech-generation](https://cnb.cool/stevelife524/lib/speech-generation) | 语音生成服务、MiniMax provider、整段/流式任务、诊断与重试 | 2 路执行，额外容量 8，60 秒总预算 |
+| [image-generation](https://cnb.cool/stevelife524/lib/image-generation) | 图片生成服务、OpenAI-compatible provider、本地参考图与媒体校验 | 1 路执行，额外容量 8，120 秒总预算 |
+| [task-runtime](https://cnb.cool/stevelife524/lib/task-runtime)（传递依赖） | 共用有界队列、并发、生命周期、退避重试和结构化日志 | 由两个生成 SDK 内部使用 |
+
+前三个是 `package.json` 的直接依赖，均固定到 CNB Git 提交；`task-runtime` 由生成服务 SDK 间接引入。SDK 均为 strict TypeScript。CNB Release `v0.1.0` 上传了 npm tarball **作为归档**，但当前实际消费方式是固定 Git 提交（`git+https://...#<commit>`），因此 `npm ci` 需要 CNB Git 读取权限，安装时会触发各 SDK 的 `prepare` 构建。尚未发布到 npm registry，tarball 不等同于当前依赖来源。
+
+`src/providers/openai.ts`、`minimax.ts` 仅负责业务参数白名单、美术提示词和错误中文显示，实际任务由 SDK 服务队列执行。`PlaybackQueue` 只负责有界播放预取、过期策略、舞台回执与播放顺序，供应商并发由 SDK 统一控制。应用关闭会取消并关闭生成服务；流式音频只有在 SDK completion 和本地写入都完成后才成为成功回放。
+
+重试默认1次（不重试），避免隐式重复付费。其他业务可在 SDK 配置中显式启用有限退避重试；未知扣费结果还需额外 opt-in，音频输出后不自动重试。默认输出结构化 warn/error 日志，可注入 logger 或关闭；事件带 taskId/provider/attempt，SDKError 带 taskId/attempt，支持业务关联与诊断。完整编排示例、接口与故障测试在各 SDK 仓库。
+
+[ai-kit](https://cnb.cool/stevelife524/lib/ai-kit) 仍是直接依赖：`DeepSeekText` 通过 `JsonTextClient` 调用非思考 JSON 接口，`src/providers/http.ts` 复用其 `endpoint`/`text` 工具；TTS 与生图已迁往两个生成服务 SDK。SDK 的 provider、通用服务机制与测试只在对应 SDK 仓库维护，业务项目显式升级依赖。
+
+
+比赛提示词、主题策划、图片艺术指导仍属于应用，通用包不依赖这些模块。新增 ASR 是供其他项目复用的文件转录客户端；当前直播应用没有新增麦克风或转录交互。
+
+迁移边界：全部可执行源码已迁移 TypeScript，并真正参与编译，没有 `noCheck` 或 `@ts-nocheck`。生成 SDK 使用 strict 编译并提供公开参数/结果声明。主项目仍是迁移期配置（`strict: false`），历史动态状态、DOM 适配及测试包含显式 `any` 和类索引签名；这并不等于完成领域类型建模。后续应按状态、动作和宿主接口逐模块收紧，而不是把编译通过当作完整类型安全。`dev` 当前监听编译产物；修改源码后需重新执行 build。`scripts/clean.mjs` 是构建前置工具，在 tsc 之前由 Node 直接执行，不属于运行时源码，因此不参与 tsc 编译。

@@ -5,8 +5,15 @@ node_modules/
 capture/bin/
 .DS_Store
 data/
+.workbuddy/
 
 .idea/
 assets/references/*.jpg
 assets/references/*.png
 assets/references/*.webp
+
+# TypeScript output
+dist/
+packages/*/dist/
+*.tgz
+public/*.js
