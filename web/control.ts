@@ -215,6 +215,10 @@ function renderSpeech() {
     root.append(row);
   }
 }
+// Must stay a mutable binding: the end of this module wraps `render` to append
+// the workflow panel, and TS2630 forbids reassigning a function declaration.
+// The wrapper also keeps early SSE-driven renders from touching workflow state
+// before the module has finished initializing.
 let render = function() {
   if (!state) return;
   planner.render(state);
