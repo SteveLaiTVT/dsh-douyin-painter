@@ -99,12 +99,14 @@ cd capture && go test ./...
 源码目录为 `src/`、`web/`、`scripts/`、`tests/`，构建输出为 `dist/` 与 `public/*.js`。修改浏览器源码请编辑 `web/*.ts`，生成文件不纳入 Git。执行 `npm ci` 后：
 
 - `npm run build` / `npm run check`：编译通用包、服务端、测试和浏览器源码；编译错误阻止输出。
-- `npm test`：189 项应用离线回归及通用包测试。
+- `npm test`：189 项应用离线回归；SDK 测试在独立仓库执行。
 - `npm run test:browser`：Playwright 浏览器回归。
 - `npm start`：先构建再启动；Harness 插件入口为 `dist/src/plugin.js`，安装本地插件前执行构建。
 - `cd capture && go test ./...`：Go 采集器测试。
 
-通用能力位于 [`packages/ai-kit`](packages/ai-kit/README.md)，npm workspace 引用 `@stevelife/ai-kit`。独立 CNB 源仓库：https://cnb.cool/stevelife524/bloomstage/ai-kit 。当前为私有仓库、MIT 许可，未向公共 npm registry 发布；独立项目可用 `npm pack` 生成的 tarball 安装。修改包后需同步独立仓库。
+通用能力唯一维护入口为 [lib/ai-kit](https://cnb.cool/stevelife524/lib/ai-kit)，主项目通过固定 Git 提交依赖 `@stevelife/ai-kit@0.1.0`，不保留 SDK 源码副本。执行 `npm ci` 会安装并构建 SDK，需要 CNB Git 读取权限。SDK 的 20 项测试在独立仓库运行，协议修复和版本发布也在那里维护；业务项目仅维护适配器、提示词和版本升级。
+
+已打包的 npm 安装包在 [CNB Release v0.1.0](https://cnb.cool/stevelife524/lib/ai-kit/-/releases/tag/v0.1.0)。这是 Git/Release 分发，尚未发布 npm registry。
 
 比赛提示词、主题策划、图片艺术指导仍属于应用，通用包不依赖这些模块。新增 ASR 是供其他项目复用的文件转录客户端；当前直播应用没有新增麦克风或转录交互。
 

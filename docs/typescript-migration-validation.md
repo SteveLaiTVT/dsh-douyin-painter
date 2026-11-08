@@ -21,3 +21,14 @@
 - 独立包仓库：`https://cnb.cool/stevelife524/bloomstage/ai-kit`，私有，main `8b52be75d21d771f720103e45ded2ce054f131c0`，已用 git ls-remote 核对。
 - 两个仓库均从 Git archive 导出到临时空目录，分别执行 npm ci 与 npm test 成功；独立包另执行 npm pack 成功。
 - 代码复核未发现可证明的新回归；保留工作区原有 `.workbuddy/` 文件，不纳入提交。
+
+
+## 独立 SDK 交付更新
+
+`stevelife524/lib` 子组织已创建，SDK 仓库已由 bloomstage 转移到 `lib/ai-kit`。
+
+- SDK 唯一维护入口：`https://cnb.cool/stevelife524/lib/ai-kit`，main 和 v0.1.0 指向 `055c4309b36e40029730d407130b5721ea9c642d`。
+- 主项目移除 `packages/ai-kit` 源码和 workspace，改为固定 Git 提交依赖；`npm ls` 已确认实际安装来自新仓库。SDK 通过 prepare 构建。
+- CNB Release v0.1.0 的 npm tarball 已上传、确认、重新下载；SHA-256 为 `9039b20891b43fbef7efe1f912bb091807fd768dbb74dcef84d167de20e7d38b`，与服务端元数据一致。
+- 这是 CNB Git/Release 分发，尚未创建或发布 CNB npm registry。CLI 目前没有创建 npm 制品库接口。
+- SDK 独立仓库 20 项测试、应用改为外部 SDK 后 189 项回归通过；新增职责约定写入双方 README。

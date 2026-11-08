@@ -9,12 +9,12 @@
   "scripts": {
     "start": "npm run build && node dist/scripts/start.js",
     "dev": "npm run build && node --watch dist/scripts/start.js",
-    "test": "npm run build && node dist/scripts/test.js && npm test -w @stevelife/ai-kit",
+    "test": "npm run build && node dist/scripts/test.js",
     "check": "npm run build",
     "setup:capture": "npm run build && node dist/scripts/setup-capture.js",
     "test:browser": "npm run build && node dist/scripts/test.js --browser",
     "setup:references": "npm run build && node dist/scripts/setup-references.js",
-    "build": "npm run build -w @stevelife/ai-kit && tsc -p tsconfig.json && tsc -p tsconfig.web.json && node dist/scripts/build-assets.js"
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.web.json && node dist/scripts/build-assets.js"
   },
   "exports": {
     ".": "./dist/src/plugin.js",
@@ -24,7 +24,8 @@
     "@types/node": "^22.20.5",
     "@types/omggif": "^1.0.5",
     "playwright": "1.62.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "omggif": "1.0.10"
   },
   "description": "本机每日主题绘画大赛：弹幕、DeepSeek互动、GPT Image与MiniMax语音",
   "dsh": {
@@ -42,10 +43,6 @@
   },
   "dependencies": {
     "@livliv-dev/player": "0.3.0",
-    "@stevelife/ai-kit": "*",
-    "omggif": "1.0.10"
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+    "@stevelife/ai-kit": "git+https://cnb.cool/stevelife524/lib/ai-kit.git#055c4309b36e40029730d407130b5721ea9c642d"
+  }
 }
