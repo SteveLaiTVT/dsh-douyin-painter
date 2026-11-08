@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {EventEmitter} from 'node:events';
-import {mkdtemp,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {MiniMaxSpeech} from '../src/providers/minimax.js';
@@ -27,4 +27,18 @@ test('application close cancels SDK streams and closes both generation services'
   await app.close();await assert.rejects(live.completion,{code:'CANCELLED'});
   assert.equal(speech.service.stats().closed,true);assert.equal(image.service.stats().closed,true);assert.equal(speech.service.stats().outstanding,0);
  }finally{await app.close();await rm(directory,{recursive:true,force:true});}
+});
+test('application close still persists state when an SDK service close rejects',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'generation-close-reject-'));
+ const capture=new EventEmitter() as EventEmitter & {stop():Promise<void>};capture.stop=async()=>{};
+ const speech={close:async()=>{throw new Error('CLOSE_TIMEOUT: Service still owns task resources');}};
+ const app=await new Application({dataDir:directory,speech,capture}).open();
+ const originalError=console.error;
+ try{
+  await app.dispatch({action:'theme',title:'关闭落盘验证',rules:'规则'});
+  console.error=()=>{};
+  await assert.doesNotReject(()=>app.close());
+  const saved=JSON.parse(await readFile(join(directory,'state.json'),'utf8'));
+  assert.equal(saved.state.theme.title,'关闭落盘验证');
+ }finally{console.error=originalError;await rm(directory,{recursive:true,force:true});}
 });

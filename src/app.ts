@@ -240,6 +240,11 @@ export class Application extends EventEmitter {
   async close() {
     if(this.closed)return;this.abortSpeechStreams();this.progressive.close();this.closed=true;clearInterval(this.workflowTimer);this.workflow.reset();this.epoch++;for(const job of this.jobs.values())job.controller.abort();
     this.capture?.off('comment',this.onComment);this.capture?.off('status',this.onStatus);
-    await Promise.all([this.capture?.stop(),this.speech?.close?.({mode:'cancel'}),this.image?.close?.({mode:'cancel'})]);await this.flush();
+    try {
+      // SDK close can reject (CLOSE_TIMEOUT while a stream still owns a slot).
+      // Resource release must never skip the pending state write.
+      const results=await Promise.allSettled([this.capture?.stop(),this.speech?.close?.({mode:'cancel'}),this.image?.close?.({mode:'cancel'})]);
+      for(const result of results)if(result.status==='rejected')console.error('[app] 关闭资源失败',result.reason);
+    } finally {await this.flush();}
   }
 }
