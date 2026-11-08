@@ -5,6 +5,7 @@ node_modules/
 capture/bin/
 .DS_Store
 data/
+.workbuddy/
 
 .idea/
 assets/references/*.jpg

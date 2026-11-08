@@ -7,6 +7,8 @@
     "node": ">=22"
   },
   "scripts": {
+    "prepare": "npm run build",
+    "prebuild": "node scripts/clean.mjs",
     "start": "npm run build && node dist/scripts/start.js",
     "dev": "npm run build && node --watch dist/scripts/start.js",
     "test": "npm run build && node dist/scripts/test.js",
@@ -20,6 +22,23 @@
     ".": "./dist/src/plugin.js",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
+  "files": [
+    "dist/",
+    "public/",
+    "src/",
+    "web/",
+    "scripts/",
+    "tests/",
+    "capture/",
+    "assets/",
+    "docs/",
+    "tsconfig.json",
+    "tsconfig.web.json",
+    "cordis.patch.yml",
+    "README.md",
+    "THIRD_PARTY_NOTICES.md",
+    ".env.example"
+  ],
   "devDependencies": {
     "@types/node": "^22.20.5",
     "@types/omggif": "^1.0.5",
