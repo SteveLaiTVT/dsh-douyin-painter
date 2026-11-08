@@ -1,5 +1,7 @@
 # 本机首版验证记录 · 2026-11-07
 
+> 归档说明：本文是 JS 时代（`src/*.js`）的一次性验证留痕。文中的测试数量（99/176/189 等）与「`npm run check`：36/51/56 个 JS/MJS 模块语法通过」均为历史基线，不代表当前实现。TypeScript 迁移后 `npm run check` 已变为 `npm run build` 的别名（由 `tsc` 编译），当前命令与测试数量见 README「TypeScript 与通用 npm 包」。
+
 本分支 `feat/daily-theme` 基于 `main`（4c3bea1）重建；工作目录为 `dsh-douyin-painter-rebuild`，旧实现和未提交改动保持原处。
 
 ## 已验证

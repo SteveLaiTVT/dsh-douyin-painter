@@ -96,31 +96,32 @@ cd capture && go test ./...
 
 ## TypeScript 与通用 npm 包
 
-源码目录为 `src/`、`web/`、`scripts/`、`tests/`，构建输出为 `dist/` 与 `public/*.js`。修改浏览器源码请编辑 `web/*.ts`，生成文件不纳入 Git。执行 `npm ci` 后：
+源码目录为 `src/`、`web/`、`scripts/`、`tests/`，构建输出为 `dist/` 与 `public/*.js`。修改浏览器源码请编辑 `web/*.ts`，生成文件不纳入 Git。执行 `npm ci` 后（需安装 devDependencies：`prepare` 会触发构建，因此还需要 CNB Git 读取权限与 npm registry 访问）：
 
-- `npm run build` / `npm run check`：编译通用包、服务端、测试和浏览器源码；编译错误阻止输出。
-- `npm test`：189 项应用离线回归；SDK 测试在独立仓库执行。
-- `npm run test:browser`：Playwright 浏览器回归。
-- `npm start`：先构建再启动；Harness 插件入口为 `dist/src/plugin.js`，安装本地插件前执行构建。
+- `npm run build` / `npm run check`：`prebuild` 先清理 `dist/` 与 `public/*.js`，再编译服务端、脚本、测试和浏览器 TypeScript；编译错误阻止输出。三个通用 SDK 由各自仓库预构建，不在本仓库编译。
+- `npm test`：194 项应用离线回归（含关闭落盘与非 SDK 异常诊断）；SDK 测试在独立仓库执行。测试清单由 `tests/*.ts` 派生，不枚举 `dist/` 里的残留产物。
+- `npm run test:browser`：13 项 Playwright 浏览器回归。
+- `npm start`：先构建再启动；Harness 插件入口为 `dist/src/plugin.js`。以 npm tarball 或 Git 依赖方式安装本包时，`prepare` 自动构建，`files` 白名单把 `dist/`、`public/*.js` 打进包并排除 `.workbuddy/`、`.data/` 等本机数据。`npm ci --omit=dev` 缺少 `typescript`，无法完成构建，只适用于已有预构建产物的场景。
 - `cd capture && go test ./...`：Go 采集器测试。
 
 通用生成能力按项目独立维护，主项目通过固定 CNB Git 提交消费，不保留 SDK 源码副本：
 
 | SDK | 责任 | 默认业务配置 |
 | --- | --- | --- |
+| [ai-kit](https://cnb.cool/stevelife524/lib/ai-kit) | 文本 JSON 客户端与文件 ASR；`DeepSeekText` 仍直接使用 | 非思考模式 JSON 协议 |
 | [speech-generation](https://cnb.cool/stevelife524/lib/speech-generation) | 语音生成服务、MiniMax provider、整段/流式任务、诊断与重试 | 2 路执行，额外容量 8，60 秒总预算 |
 | [image-generation](https://cnb.cool/stevelife524/lib/image-generation) | 图片生成服务、OpenAI-compatible provider、本地参考图与媒体校验 | 1 路执行，额外容量 8，120 秒总预算 |
-| [task-runtime](https://cnb.cool/stevelife524/lib/task-runtime) | 共用有界队列、并发、生命周期、退避重试和结构化日志 | 由两个生成 SDK 内部使用 |
+| [task-runtime](https://cnb.cool/stevelife524/lib/task-runtime)（传递依赖） | 共用有界队列、并发、生命周期、退避重试和结构化日志 | 由两个生成 SDK 内部使用 |
 
-SDK 均为 strict TypeScript，发布了 CNB Release `v0.1.0` 的 npm tarball。`npm ci` 需要 CNB Git 读取权限，自动安装并构建依赖。当前为 Git/Release 分发，尚未发布 npm registry。
+前三个是 `package.json` 的直接依赖，均固定到 CNB Git 提交；`task-runtime` 由生成服务 SDK 间接引入。SDK 均为 strict TypeScript。CNB Release `v0.1.0` 上传了 npm tarball **作为归档**，但当前实际消费方式是固定 Git 提交（`git+https://...#<commit>`），因此 `npm ci` 需要 CNB Git 读取权限，安装时会触发各 SDK 的 `prepare` 构建。尚未发布到 npm registry，tarball 不等同于当前依赖来源。
 
 `src/providers/openai.ts`、`minimax.ts` 仅负责业务参数白名单、美术提示词和错误中文显示，实际任务由 SDK 服务队列执行。`PlaybackQueue` 只负责有界播放预取、过期策略、舞台回执与播放顺序，供应商并发由 SDK 统一控制。应用关闭会取消并关闭生成服务；流式音频只有在 SDK completion 和本地写入都完成后才成为成功回放。
 
 重试默认1次（不重试），避免隐式重复付费。其他业务可在 SDK 配置中显式启用有限退避重试；未知扣费结果还需额外 opt-in，音频输出后不自动重试。默认输出结构化 warn/error 日志，可注入 logger 或关闭；事件带 taskId/provider/attempt，SDKError 带 taskId/attempt，支持业务关联与诊断。完整编排示例、接口与故障测试在各 SDK 仓库。
 
-[旧 ai-kit](https://cnb.cool/stevelife524/lib/ai-kit) 继续兼容文本 JSON/文件 ASR 客户端；主项目不再从它消费 TTS 或生图。SDK 的 provider、通用服务机制与测试只在对应 SDK 仓库维护，业务项目显式升级依赖。
+[ai-kit](https://cnb.cool/stevelife524/lib/ai-kit) 仍是直接依赖：`DeepSeekText` 通过 `JsonTextClient` 调用非思考 JSON 接口，`src/providers/http.ts` 复用其 `endpoint`/`text` 工具；TTS 与生图已迁往两个生成服务 SDK。SDK 的 provider、通用服务机制与测试只在对应 SDK 仓库维护，业务项目显式升级依赖。
 
 
 比赛提示词、主题策划、图片艺术指导仍属于应用，通用包不依赖这些模块。新增 ASR 是供其他项目复用的文件转录客户端；当前直播应用没有新增麦克风或转录交互。
 
-迁移边界：全部可执行源码已迁移 TypeScript，并真正参与编译，没有 `noCheck` 或 `@ts-nocheck`。生成 SDK 使用 strict 编译并提供公开参数/结果声明。主项目仍是迁移期配置（`strict: false`），历史动态状态、DOM 适配及测试包含显式 `any` 和类索引签名；这并不等于完成领域类型建模。后续应按状态、动作和宿主接口逐模块收紧，而不是把编译通过当作完整类型安全。`dev` 当前监听编译产物；修改源码后需重新执行 build。
+迁移边界：全部可执行源码已迁移 TypeScript，并真正参与编译，没有 `noCheck` 或 `@ts-nocheck`。生成 SDK 使用 strict 编译并提供公开参数/结果声明。主项目仍是迁移期配置（`strict: false`），历史动态状态、DOM 适配及测试包含显式 `any` 和类索引签名；这并不等于完成领域类型建模。后续应按状态、动作和宿主接口逐模块收紧，而不是把编译通过当作完整类型安全。`dev` 当前监听编译产物；修改源码后需重新执行 build。`scripts/clean.mjs` 是构建前置工具，在 tsc 之前由 Node 直接执行，不属于运行时源码，因此不参与 tsc 编译。
