@@ -40,15 +40,15 @@ DeepSeek 默认 `deepseek-flash`，显式关闭思考；动图默认 `gpt-image-
 
 采集完整传递消息 ID 和 UID；业务保留房间、来源与 UID，不用昵称识别人。消息传输重复按房间和来源去重。同一 UID 的重复文本在界面折叠并标记次数，不增加评选权重；不同创意及聊天仍保留。未知 UID 明确显示「身份未知」，不强行归并；手动代录可填写 UID 以验证流程，manual 与 live 身份分开。
 
-规则机制位于 `src/comment-processing.js`，主题相关性、聊天噪音和创意好坏由 DeepSeek 在收词后评选时判断，不对每条弹幕自动收费调用。每个已知观众每轮最多一个入选名额；可结合明确属于同一创意的补充，并展示实际引用的原文依据，不能跨观众拼接。模型若返回越界用户、重复名额或不存在的原文，会明确报错而非自动重试。实际语义筛选质量仍需真实模型调用验证。
+规则机制位于 `src/comment-processing.ts`，主题相关性、聊天噪音和创意好坏由 DeepSeek 在收词后评选时判断，不对每条弹幕自动收费调用。每个已知观众每轮最多一个入选名额；可结合明确属于同一创意的补充，并展示实际引用的原文依据，不能跨观众拼接。模型若返回越界用户、重复名额或不存在的原文，会明确报错而非自动重试。实际语义筛选质量仍需真实模型调用验证。
 
 ## 模块与插件
 
-- `src/app.js`：主题比赛、任务状态、记录和媒体，不依赖 Harness。
+- `src/app.ts`：主题比赛、任务状态、记录和媒体，不依赖 Harness。
 - `src/providers/`：DeepSeek 解说/评估/评选/回复、OpenAI 图片、MiniMax 语音。
-- `src/capture.js`、`capture/`：自动管理的真实弹幕采集器。
-- `src/server.js`、`public/`：本机 HTTP/SSE、工作台和舞台。
-- `src/harness-text.js`、`src/plugin.js`：最后挂接 Harness 的适配层，复用前述模块。宿主模式由 Harness 的 agents 服务执行文本任务，独立模式直连 DeepSeek API。
+- `src/capture.ts`、`capture/`：自动管理的真实弹幕采集器。
+- `src/server.ts`、`public/`：本机 HTTP/SSE、工作台和舞台。
+- `src/harness-text.ts`、`src/plugin.ts`：最后挂接 Harness 的适配层，复用前述模块。宿主模式由 Harness 的 agents 服务执行文本任务，独立模式直连 DeepSeek API。
 
 Harness 插件导出 `name/inject/apply`，`cordis.patch.yml` 提供 bundle 补丁。先按你的宿主版本将此本地包安装进 profile，再引用补丁；配置 `root` 为本项目绝对路径以读取本项目 `.env.local`/数据目录，`provider` 和 `model` 使用宿主已配置的 DeepSeek 路由。`textMode: api` 可在宿主中继续使用独立 API 模块。未实际加载宿主前，不将导入测试称为宿主验收。适配依据本机官方源码 SHA `571902028a75c64c1d767f4ae5fd099485f0ddf0`。
 
@@ -92,3 +92,20 @@ cd capture && go test ./...
 生成只保存草案。选择一个方向后可以修改所有字段、保存草稿，最后点击“确认并应用这份方案”。直播当前轮次进行时仍可准备草案，应用须等本轮结束。草案和已批准方案跨重启保留；多页面修改有版本校验，实时刷新不会覆盖未保存的编辑。
 
 审核内容会进入主持接话、候选评选和生图；审核后的世界背景替代旧主题预设，观众明确的画风与道具辨识仍优先。开场使用审核后的开场词。故事板组织整场直播叙事，单个商品 GIF 只取一镜轻动作，不生成多镜头长片。虚构示例不会作为观众投稿计入比赛。单次生成不自动重试，失败保留上一份草案；旧的直接设置主题功能仍可使用。
+
+
+## TypeScript 与通用 npm 包
+
+源码目录为 `src/`、`web/`、`scripts/`、`tests/`，构建输出为 `dist/` 与 `public/*.js`。修改浏览器源码请编辑 `web/*.ts`，生成文件不纳入 Git。执行 `npm ci` 后：
+
+- `npm run build` / `npm run check`：编译通用包、服务端、测试和浏览器源码；编译错误阻止输出。
+- `npm test`：189 项应用离线回归及通用包测试。
+- `npm run test:browser`：Playwright 浏览器回归。
+- `npm start`：先构建再启动；Harness 插件入口为 `dist/src/plugin.js`，安装本地插件前执行构建。
+- `cd capture && go test ./...`：Go 采集器测试。
+
+通用能力位于 [`packages/ai-kit`](packages/ai-kit/README.md)，npm workspace 引用 `@stevelife/ai-kit`。独立 CNB 源仓库：https://cnb.cool/stevelife524/bloomstage/ai-kit 。当前为私有仓库、MIT 许可，未向公共 npm registry 发布；独立项目可用 `npm pack` 生成的 tarball 安装。修改包后需同步独立仓库。
+
+比赛提示词、主题策划、图片艺术指导仍属于应用，通用包不依赖这些模块。新增 ASR 是供其他项目复用的文件转录客户端；当前直播应用没有新增麦克风或转录交互。
+
+迁移边界：全部可执行源码已迁移 TypeScript，并真正参与编译，没有 `noCheck` 或 `@ts-nocheck`。通用包使用 strict 编译并提供公开参数/结果声明。主项目仍是迁移期配置（`strict: false`），历史动态状态、DOM 适配及测试包含显式 `any` 和类索引签名；这并不等于完成领域类型建模。后续应按状态、动作和宿主接口逐模块收紧，而不是把编译通过当作完整类型安全。`dev` 当前监听编译产物；修改源码后需重新执行 build。

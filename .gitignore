@@ -10,3 +10,9 @@ data/
 assets/references/*.jpg
 assets/references/*.png
 assets/references/*.webp
+
+# TypeScript output
+dist/
+packages/*/dist/
+*.tgz
+public/*.js

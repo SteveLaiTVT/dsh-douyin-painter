@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { Application } from '../src/app.js';
+import { LocalServer } from '../src/server.js';
+test('loopback HTTP serves complete local workflow without a login and rejects foreign origins',async (t: any)=>{
+ const dataDir: any=await mkdtemp(join(tmpdir(),'theme-http-'));const capture: any=new EventEmitter();capture.stop=async()=>{};
+ const app: any=await new Application({dataDir,capture,config:{openai:true},text:{explain:async()=>({text:'请尽情想象'})}}).open();
+ const server: any=new LocalServer({app});await server.start(0);t.after(async()=>{await server.close();await app.close();await rm(dataDir,{recursive:true,force:true});});
+ const origin: any=server.origin;assert.equal(server.http.address().address,'127.0.0.1');
+ const act: any=(body: any)=>fetch(origin+'/api/actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ assert.equal((await fetch(origin+'/control')).status,200);
+ assert.equal((await fetch(origin+'/api/state')).status,200);
+ let response: any=await act({action:'theme',title:'奇妙森林'});assert.equal(response.status,200);assert.equal((await response.json()).theme.title,'奇妙森林');
+ response=await act({action:'explain'});assert.equal((await response.json()).explanation,'请尽情想象');
+ assert.equal((await fetch(origin+'/api/state',{headers:{Origin:'https://evil.example'}})).status,403);
+ assert.equal((await fetch(origin+'/media/../.env.local')).status,404);
+ assert.equal((await act({action:'nonsense'})).status,400);
+});

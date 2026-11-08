@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import { VotingRound, parseVote } from '../src/voting.js';
+const c: any=(id: any,userId: any,text: any,extra: any={})=>({id,userId,text,roomId:'r',source:'live',...extra});
+test('received votes use latest known UID vote, duplicates and unknown do not inflate totals',()=>{let now: any=0;const vote: any=new VotingRound([{index:1,commentId:'a'},{index:2,commentId:'b'}],{clock:()=>now,durationMs:10000});
+ assert.equal(parseVote('投 2'),2);assert.equal(parseVote('1'),null);assert.equal(parseVote('投一'),1);assert.equal(parseVote('投 ２'),2);assert.equal(parseVote('我投1觉得很好'),null);
+ vote.cast(c('1','u','投1'));vote.cast(c('1','u','投1'));vote.cast(c('2','u','投2'));vote.cast(c('3','','投1'));vote.cast(c('3','','投1'));vote.cast(c('4','v','投2'));
+ assert.equal(vote.snapshot().voters,2);assert.deepEqual(vote.snapshot().choices.map((c: any)=>c.votes),[0,2]);assert.equal(vote.snapshot().unknownVotes,1);
+ now=10000;assert.equal(vote.cast(c('5','w','投1')).accepted,false);assert.equal(vote.finish().winnerCommentId,'b');
+});
+test('pause preserves remaining time and excludes paused votes; ties and zero votes require host',()=>{let now: any=100;const vote: any=new VotingRound([{index:1,commentId:'a'},{index:2,commentId:'b'}],{clock:()=>now,durationMs:5000});now=1100;vote.pause();now=10000;assert.equal(vote.cast(c('1','u','投1')).accepted,false);assert.equal(vote.snapshot().remainingMs,4000);vote.resume();assert.equal(vote.snapshot().deadline,14000);assert.equal(vote.finish().winnerCommentId,null);assert.deepEqual(vote.finish().tie,['a','b']);});
+test('manual votes excluded unless explicitly enabled; room identity scopes votes',()=>{const vote: any=new VotingRound([{index:1,commentId:'a'}]);vote.cast(c('1','u','投1',{source:'manual'}));assert.equal(vote.snapshot().voters,0);vote.cast(c('2','u','投1'));vote.cast(c('3','u','投1',{roomId:'other'}));assert.equal(vote.snapshot().voters,2);});
